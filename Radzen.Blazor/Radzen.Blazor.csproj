@@ -56,9 +56,31 @@
     <Sass Include="$(MSBuildProjectDirectory)/themes/*.scss" Exclude="$(MSBuildProjectDirectory)/themes/_*.scss" Condition="'$(TargetFramework)' == 'net6.0'" />
   </ItemGroup>
 
+  <ItemGroup>
+    <SassFile Include="themes\dark-base.scss" />
+    <SassFile Include="themes\dark.scss" />
+    <SassFile Include="themes\default-base.scss" />
+    <SassFile Include="themes\default.scss" />
+    <SassFile Include="themes\humanistic-base.scss" />
+    <SassFile Include="themes\humanistic.scss" />
+    <SassFile Include="themes\material-base.scss" />
+    <SassFile Include="themes\material.scss" />
+    <SassFile Include="themes\software-base.scss" />
+    <SassFile Include="themes\software.scss" />
+    <SassFile Include="themes\standard-base.scss" />
+    <SassFile Include="themes\standard.scss" />
+    <SassFile Include="themes\_accure-theme.scss" />
+    <SassFile Include="themes\_bootstrap.scss" />
+    <SassFile Include="themes\_colors.scss" />
+    <SassFile Include="themes\_components.scss" />
+    <SassFile Include="themes\_fonts.scss" />
+    <SassFile Include="themes\_mixins.scss" />
+    <SassFile Include="themes\_variables.scss" />
+  </ItemGroup>
+
  <Target Name="Sass" BeforeTargets="BeforeBuild" Condition="'$(TargetFramework)' == 'net6.0'">
     <PropertyGroup>
-      <_SassFileList>@(Sass->'&quot;%(FullPath)&quot;', ' ')</_SassFileList>
+      <_SassFileList>@(Sass->'"%(FullPath)"', ' ')</_SassFileList>
       <DartSassBuilderArgs>files $(_SassFileList) --outputstyle $(DartSassOutputStyle) --level $(DartSassOutputLevel)</DartSassBuilderArgs>
     </PropertyGroup>
     <Message Text="$(DartSassBuilderArgs)" Importance="$(DartSassMessageLevel)" />
@@ -69,7 +91,7 @@
     <ItemGroup>
         <CssFile Include="$(MSBuildProjectDirectory)/themes/*.css" />
     </ItemGroup>
-    <Move SourceFiles="@(CssFile)" DestinationFolder="$(MSBuildProjectDirectory)/wwwroot/css/" />
+    <Move SourceFiles="@(CssFile)" DestinationFolder="D:/Development/Accure/Repositories/Accure Products/Shared Libraries/Accure.Blazor/Accure.Blazor.DesignSystem/wwwroot/css/v3/themes/" />
   </Target>
 
 </Project>
