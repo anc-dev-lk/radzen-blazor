@@ -31,7 +31,11 @@ $scrollbar-color: var(--rz-base-300);
 //Grid
 
 $grid-stripe-background-color: var(--rz-base-background-color);
+$grid-filter-background-color: var(--rz-base-background-color);
+$grid-filter-border: none;
+$grid-header-cell-border-bottom: var(--rz-border-normal);
 
 //Header
-
 $header-z: 4;
+
+$grid-filter-buttons-background-color: var(--rz-base-background-color);
