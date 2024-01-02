@@ -1690,7 +1690,7 @@ namespace Radzen
         /// <summary>
         /// Satisfied if the current value is not <see cref="string.Empty"/>.
         /// </summary>
-        IsNotEmpty, 
+        IsNotEmpty,
         /// <summary>
         /// Custom operator if not need to generate the filter.
         /// </summary>
@@ -2073,6 +2073,12 @@ namespace Radzen
         /// </summary>
         /// <value>The title.</value>
         public string Title { get; set; }
+
+        /// <summary>
+        /// Gets or sets the format string used to display the key in the group.
+        /// </summary>
+        /// <value>The format string.</value>
+        public string FormatString { get; set; }
 
         /// <summary>
         /// Gets the title of the group.
@@ -2824,7 +2830,7 @@ namespace Radzen
             }
             return false;
         }
-        
+
         /// <summary>
         /// Method to only replace first occurence of a substring in a string
         /// </summary>

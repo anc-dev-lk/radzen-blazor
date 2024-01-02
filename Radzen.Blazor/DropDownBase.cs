@@ -251,6 +251,13 @@ namespace Radzen
         public string DisabledProperty { get; set; }
 
         /// <summary>
+        /// Gets or sets the search aria label text.
+        /// </summary>
+        /// <value>The search aria label text.</value>
+        [Parameter]
+        public string SearchAriaLabel { get; set; } = "Search";
+
+        /// <summary>
         /// Gets or sets the selected item changed.
         /// </summary>
         /// <value>The selected item changed.</value>
@@ -589,7 +596,7 @@ namespace Radzen
         /// </summary>
         /// <param name="args">The <see cref="Microsoft.AspNetCore.Components.Web.KeyboardEventArgs"/> instance containing the event data.</param>
         /// <param name="isFilter">if set to <c>true</c> [is filter].</param>
-        private async System.Threading.Tasks.Task HandleKeyPress(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs args, bool isFilter = false)
+        protected virtual async System.Threading.Tasks.Task HandleKeyPress(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs args, bool isFilter = false)
         {
             if (Disabled)
                 return;
@@ -721,6 +728,10 @@ namespace Radzen
                     {
                         await InvokeAsync(virtualize.RefreshDataAsync);
                     }
+                    else
+                    {
+                        await LoadData.InvokeAsync(await GetLoadDataArgs());
+                    }
                     await InvokeAsync(() => { StateHasChanged(); });
 #endif
                 }
@@ -741,7 +752,7 @@ namespace Radzen
         /// Handles the <see cref="E:KeyPress" /> event.
         /// </summary>
         /// <param name="args">The <see cref="Microsoft.AspNetCore.Components.Web.KeyboardEventArgs"/> instance containing the event data.</param>
-        protected async System.Threading.Tasks.Task OnKeyPress(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs args)
+        protected virtual async System.Threading.Tasks.Task OnKeyPress(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs args)
         {
             await HandleKeyPress(args);
         }

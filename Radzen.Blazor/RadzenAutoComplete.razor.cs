@@ -27,6 +27,7 @@ namespace Radzen.Blazor
         /// Specifies additional custom attributes that will be rendered by the input.
         /// </summary>
         /// <value>The attributes.</value>
+        [Parameter]
         public IReadOnlyDictionary<string, object> InputAttributes { get; set; }
 
         /// <summary>
@@ -65,6 +66,16 @@ namespace Radzen.Blazor
         public int FilterDelay { get; set; } = 500;
 
         /// <summary>
+        /// Gets or sets the underlying input type.
+        /// </summary>
+        /// <remarks>
+        /// This does not apply when <see cref="Multiline"/> is <c>true</c>.
+        /// </remarks>
+        /// <value>The input type.</value>
+        [Parameter]
+        public string InputType { get; set; } = "text";
+
+        /// <summary>
         /// Gets search input reference.
         /// </summary>
         protected ElementReference search;
@@ -98,15 +109,20 @@ namespace Radzen.Blazor
                     //
                 }
             }
-            else if (key == "Enter")
+            else if (key == "Enter" || key == "Tab")
             {
                 if (selectedIndex >= 0 && selectedIndex <= items.Count() - 1)
                 {
                     await OnSelectItem(items.ElementAt(selectedIndex));
                     selectedIndex = -1;
                 }
+
+                if (key == "Tab")
+                {
+                    await JSRuntime.InvokeVoidAsync("Radzen.closePopup", PopupID);
+                }
             }
-            else if (key == "Escape" || key == "Tab")
+            else if (key == "Escape")
             {
                 await JSRuntime.InvokeVoidAsync("Radzen.closePopup", PopupID);
             }

@@ -22,6 +22,7 @@ namespace Radzen.Blazor
         /// Specifies additional custom attributes that will be rendered by the input.
         /// </summary>
         /// <value>The attributes.</value>
+        [Parameter]
         public IReadOnlyDictionary<string, object> InputAttributes { get; set; }
 
         /// <summary>
@@ -266,7 +267,19 @@ namespace Radzen.Blazor
 
             if (!string.IsNullOrEmpty(Format))
             {
-                valueStr = valueStr.Replace(Format.Replace("#", "").Trim(), "");
+                string formattedStringWithoutPlaceholder = Format.Replace("#", "").Trim();
+                
+                if (valueStr.Contains(Format))
+                {
+                    string currencyDecimalSeparator = Culture.NumberFormat.CurrencyDecimalSeparator;
+
+                    string[] splitFormatString = formattedStringWithoutPlaceholder.Split(currencyDecimalSeparator);
+                    string[] splitValueString = valueStr.Split(currencyDecimalSeparator);
+                    int lengthDifference = splitValueString[0].Length - splitFormatString[0].Length;
+                    formattedStringWithoutPlaceholder = formattedStringWithoutPlaceholder.PadLeft(formattedStringWithoutPlaceholder.Length + lengthDifference, '0');
+                }
+                
+                valueStr = valueStr.Replace(formattedStringWithoutPlaceholder, "");
             }
 
             return new string(valueStr.Where(c => char.IsDigit(c) || char.IsPunctuation(c)).ToArray()).Replace("%", "");

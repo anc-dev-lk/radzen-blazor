@@ -13,14 +13,14 @@
         <RadzenDataGridColumn TItem="Employee" Property="Title" Title="Title" 
             Type="typeof(IEnumerable<string>)" FilterValue="@selectedTitles" FilterOperator="FilterOperator.Contains">
             <FilterTemplate>
-                <RadzenDropDown @bind-Value=@selectedTitles Style="width:100%"
+                <RadzenDropDown @bind-Value=@selectedTitles Style="width:100%" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select title" }})"
                     Change=@OnSelectedTitlesChange Data="@(titles)" AllowClear="true" Multiple="true" />
             </FilterTemplate>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="Employee" Title="Customers" Property="Orders" FilterProperty="Customer/CustomerID" Sortable=false
                                   Type="typeof(IEnumerable<Customer>)" FilterValue="@selectedCustomers" FilterOperator="FilterOperator.In">
             <FilterTemplate>
-                <RadzenDropDown @bind-Value=@selectedCustomers Style="width:100%" TextProperty="CompanyName" ValueProperty="CustomerID"
+                <RadzenDropDown @bind-Value=@selectedCustomers Style="width:100%" TextProperty="CompanyName" ValueProperty="CustomerID" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select company" }})"
                     Change=@OnSelectedCustomersChange Data="@(customers)" AllowSelectAll="false" Multiple="true" MaxSelectedLabels="2" />
             </FilterTemplate>
             <Template>
@@ -77,7 +77,7 @@ async Task LoadData(LoadDataArgs args)
 @code {
     bool isLoading;
     int count;
-    IEnumerable<Employee> employees;
+    ODataEnumerable<Employee> employees;
     IList<Employee> selectedEmployees;
     RadzenDataGrid<Employee> grid;
 
@@ -106,7 +106,7 @@ async Task LoadData(LoadDataArgs args)
         await grid.FirstPage();
     }
 
-    NorthwindODataService service = new NorthwindODataService("https://services.odata.org/V4/Northwind/Northwind.svc/");
+    NorthwindODataService service = new NorthwindODataService("https://services.radzen.com/odata/Northwind/");
 
     IEnumerable<Customer> customers;
 
@@ -122,7 +122,7 @@ async Task LoadData(LoadDataArgs args)
     {
         isLoading = true;
 
-        var result = await service.GetEmployees(filter: args.Filter, top: args.Top, skip: args.Skip, orderby: args.OrderBy, count: true, expand: "Orders($expand=Customer)");
+        var result = await service.GetEmployees(filter: args.Filter, top: args.Top, skip: args.Skip, orderby: args.OrderBy, count: true, expand: "NorthwindOrders($expand=Customer)");
         // Update the Data property
         employees = result.Value.AsODataEnumerable();
         // Update the count
