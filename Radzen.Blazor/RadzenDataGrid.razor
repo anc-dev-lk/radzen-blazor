@@ -5,18 +5,20 @@
 @typeparam TItem
 @inherits PagedDataBoundComponent<TItem>
 
+<CascadingValue Value=this>
 @if (Columns != null)
 {
-    <CascadingValue Value=this>
         @Columns
-    </CascadingValue>
 }
 
 @if (Visible)
 {
     var visibleColumns = columns.Where(c => c.GetVisible()).ToList();
 
-    <div @ref=@Element style="@Style;outline:none;" @attributes="Attributes" class="rz-data-grid @GetCssClass()" id="@GetId()" @onkeydown="@OnKeyDown" @onkeydown:preventDefault="preventKeyDown" tabindex=0>
+    <div @ref=@Element style="@Style" @attributes="Attributes" class="rz-data-grid @GetCssClass()" id="@GetId()"
+        @onkeydown="@OnKeyDown" @onkeydown:preventDefault="preventKeyDown" @onkeydown:stopPropagation="true" tabindex=0
+        @onfocus=@(args => focusedIndex = focusedIndex == -1 ? 0: focusedIndex)
+        @onblur=@(args => JSRuntime.InvokeVoidAsync("Radzen.clearFocusedHeaderCell", UniqueID))>
         @if (AllowGrouping || AllowColumnPicking)
         {
             <div class="rz-group-header" @onmouseup=@(args => EndColumnDropToGroup())>
@@ -75,12 +77,12 @@
                 </div>
             }
         }
-        @if (AllowPaging && (PagerPosition == PagerPosition.Top || PagerPosition == PagerPosition.TopAndBottom))
+        @if (AllowPaging && PagerPosition.HasFlag(PagerPosition.Top))
         {
-            <RadzenPager HorizontalAlign="@PagerHorizontalAlign" AlwaysVisible="@PagerAlwaysVisible" @ref="topPager" Count="@Count" PageSize="@PageSize" PageNumbersCount="@PageNumbersCount" PageChanged="@ChangePage" PageSizeChanged="@OnPageSizeChanged" PageSizeOptions="@PageSizeOptions" ShowPagingSummary="@ShowPagingSummary" PagingSummaryFormat="@PagingSummaryFormat" PageSizeText="@PageSizeText" Density="@Density" FirstPageTitle="@FirstPageTitle" FirstPageAriaLabel="@FirstPageAriaLabel" PrevPageAriaLabel="@PrevPageAriaLabel" PrevPageTitle="@PrevPageTitle" NextPageAriaLabel="@NextPageAriaLabel" NextPageTitle="@NextPageTitle" LastPageAriaLabel="@LastPageAriaLabel" LastPageTitle="@LastPageTitle" PageAriaLabelFormat="@PageAriaLabelFormat" PageTitleFormat="@PageTitleFormat" />
+                <RadzenPager HorizontalAlign="@PagerHorizontalAlign" AlwaysVisible="@PagerAlwaysVisible" @ref="topPager" Count="@Count" PageSize="@PageSize" PageNumbersCount="@PageNumbersCount" PageChanged="@ChangePage" PageSizeChanged="@OnPageSizeChanged" PageSizeOptions="@PageSizeOptions" ShowPagingSummary="@ShowPagingSummary" PagingSummaryFormat="@PagingSummaryFormat" PageSizeText="@PageSizeText" Density="@Density" FirstPageTitle="@FirstPageTitle" FirstPageAriaLabel="@FirstPageAriaLabel" PrevPageAriaLabel="@PrevPageAriaLabel" PrevPageTitle="@PrevPageTitle" NextPageAriaLabel="@NextPageAriaLabel" NextPageTitle="@NextPageTitle" LastPageAriaLabel="@LastPageAriaLabel" LastPageTitle="@LastPageTitle" PageAriaLabelFormat="@PageAriaLabelFormat" PageTitleFormat="@PageTitleFormat" PrevPageLabel="@PrevPageLabel" NextPageLabel="@NextPageLabel" />
         }
 
-        <div class="rz-data-grid-data">
+        <div class="rz-data-grid-data" tabindex="-1">
             <table class="rz-grid-table rz-grid-table-fixed @(AllowAlternatingRows ? "rz-grid-table-striped" : "") @(allColumns.Any(c => c.Parent != null) ? "rz-grid-table-composite" : "") @(getGridLinesCSSClass())">
                 <colgroup>
                     @foreach (var g in Groups)
@@ -102,12 +104,15 @@
                         <tr>
                             @if (i == 0) // Only add the th elements for the first row
                             {
+                             @if (ShowGroupExpandColumn)
+                                {
                                     @foreach (var g in Groups)
                                     {
                                         <th class="rz-col-icon rz-unselectable-text" scope="col" rowspan=@(deepestChildColumnLevel + 1)>
                                             <span class="rz-column-title"></span>
                                         </th>
                                     }
+                                }
                                     @if (Template != null && ShowExpandColumn && i == 0)
                                     {
                                         <th class="rz-col-icon rz-unselectable-text" scope="col" rowspan=@(deepestChildColumnLevel + 1)>
@@ -138,14 +143,16 @@
                     }
                     @if (AllowFiltering && (FilterMode == FilterMode.Simple || FilterMode == FilterMode.SimpleWithMenu) && columns.Where(column => column.Filterable && (!string.IsNullOrEmpty(column.GetFilterProperty()) || column.FilterTemplate != null)).Any())
                     {
-                        <tr>
-                             
-                            @foreach (var g in Groups)
-                            {
-                                <th class="rz-col-icon  rz-unselectable-text" scope="col" rowspan=@(deepestChildColumnLevel + 1)>
-                                    <span class="rz-column-title"></span>
-                                </th>
-                            }
+                        <tr @onkeydown:stopPropagation>
+                             @if (ShowGroupExpandColumn)
+                                {
+                                    @foreach (var g in Groups)
+                                    {
+                                        <th class="rz-col-icon  rz-unselectable-text" scope="col" rowspan=@(deepestChildColumnLevel + 1)>
+                                            <span class="rz-column-title"></span>
+                                        </th>
+                                    }
+                                }
                             @if (Template != null && ShowExpandColumn  )
                             {
                                 <th class="rz-col-icon  rz-unselectable-text" scope="col" rowspan=@(deepestChildColumnLevel + 1)>
@@ -338,7 +345,7 @@
                         }
                         else
                         {
-                            <tr class=" rz-datatable-emptymessage-row">
+                            <tr class=" rz-datatable-emptymessage-row" @onkeydown:stopPropagation>
                                 <td class="rz-datatable-emptymessage" colspan="@(visibleColumns.Sum(c => c.GetColSpan()) + (Template != null && ShowExpandColumn ? 1 : 0))">
                                     @if (EmptyTemplate != null)
                                     {
@@ -355,17 +362,20 @@
                 </tbody>
                 @if (visibleColumns.Where(c => c.FooterTemplate != null).Any())
                 {
-                    <tfoot class="rz-datatable-tfoot">
+                    <tfoot class="rz-datatable-tfoot" @onkeydown:stopPropagation>
                         @for (var i = 0; i < deepestChildColumnLevel + 1; i++)
                         {
                             <tr class="">
                                 @if (i == 0) // Only add the th elements for the first row
                                 {
-                                    @foreach (var g in Groups)
+                                    @if (ShowGroupExpandColumn)
                                     {
-                                        <td class="rz-col-icon rz-unselectable-text" scope="col" rowspan=@(deepestChildColumnLevel + 1)>
-                                            <span class="rz-column-title"></span>
-                                        </td>
+                                        @foreach (var g in Groups)
+                                        {
+                                            <td class="rz-col-icon rz-unselectable-text" scope="col" rowspan=@(deepestChildColumnLevel + 1)>
+                                                <span class="rz-column-title"></span>
+                                            </td>
+                                        }
                                     }
                                     @if (Template != null && ShowExpandColumn && i == 0)
                                     {
@@ -400,7 +410,7 @@
             @if (IsLoading)
             {
                 <div class="rz-datatable-loading"></div>
-                <div class="rz-datatable-loading-content">
+                <div class="rz-datatable-loading-content" @onkeydown:stopPropagation>
                     @if(LoadingTemplate != null)
                     {
                     @LoadingTemplate
@@ -413,25 +423,34 @@
             }
         </div>
 
-        @if (AllowPaging && (PagerPosition == PagerPosition.Bottom || PagerPosition == PagerPosition.TopAndBottom))
+        @if (AllowPaging && PagerPosition.HasFlag(PagerPosition.Bottom))
         {
-            <RadzenPager HorizontalAlign="@PagerHorizontalAlign" AlwaysVisible="@PagerAlwaysVisible" @ref="bottomPager" Count="@Count" PageSize="@PageSize" PageNumbersCount="@PageNumbersCount" PageChanged="@ChangePage" PageSizeChanged="@OnPageSizeChanged" PageSizeOptions="@PageSizeOptions" ShowPagingSummary="@ShowPagingSummary" PagingSummaryFormat="@PagingSummaryFormat" PageSizeText="@PageSizeText" Density="@Density" FirstPageTitle="@FirstPageTitle" FirstPageAriaLabel="@FirstPageAriaLabel" PrevPageAriaLabel="@PrevPageAriaLabel" PrevPageTitle="@PrevPageTitle" NextPageAriaLabel="@NextPageAriaLabel" NextPageTitle="@NextPageTitle" LastPageAriaLabel="@LastPageAriaLabel" LastPageTitle="@LastPageTitle" PageAriaLabelFormat="@PageAriaLabelFormat" PageTitleFormat="@PageTitleFormat" />
+                <RadzenPager HorizontalAlign="@PagerHorizontalAlign" AlwaysVisible="@PagerAlwaysVisible" @ref="bottomPager" Count="@Count" PageSize="@PageSize" PageNumbersCount="@PageNumbersCount" PageChanged="@ChangePage" PageSizeChanged="@OnPageSizeChanged" PageSizeOptions="@PageSizeOptions" ShowPagingSummary="@ShowPagingSummary" PagingSummaryFormat="@PagingSummaryFormat" PageSizeText="@PageSizeText" Density="@Density" FirstPageTitle="@FirstPageTitle" FirstPageAriaLabel="@FirstPageAriaLabel" PrevPageAriaLabel="@PrevPageAriaLabel" PrevPageTitle="@PrevPageTitle" NextPageAriaLabel="@NextPageAriaLabel" NextPageTitle="@NextPageTitle" LastPageAriaLabel="@LastPageAriaLabel" LastPageTitle="@LastPageTitle" PageAriaLabelFormat="@PageAriaLabelFormat" PageTitleFormat="@PageTitleFormat" PrevPageLabel="@PrevPageLabel" NextPageLabel="@NextPageLabel" />
+        }
+        @if (@FooterTemplate != null)
+        {
+            <div class="rz-custom-footer" @onkeydown:stopPropagation>
+                @FooterTemplate
+            </div>
         }
     </div>
 }
+</CascadingValue>
 @code {
     internal void SetAttribute(Dictionary<string, object> attributes, string attributeName, object attributeValue)
     {
+        var separator = attributeName == "class" ? " " : ";";
+
         if (!attributes.ContainsKey(attributeName))
         {
             attributes.Add(attributeName, attributeValue);
         }
         else
         {
-            var values = $"{attributes[attributeName]}".Split(";").Where(v => v != string.Empty);
-            var newValues = $"{attributeValue}".Split(";").Where(v => v != string.Empty);
+            var values = $"{attributes[attributeName]}".Split(separator).Where(v => v != string.Empty);
+            var newValues = $"{attributeValue}".Split(separator).Where(v => v != string.Empty);
 
-            attributes[attributeName] = string.Join(";", values.Concat(newValues).Distinct());
+            attributes[attributeName] = string.Join(separator, values.Concat(newValues).Distinct());
         }
     }
 
@@ -491,7 +510,7 @@
             <text>
             @if (this.AllowCompositeDataCells ? RowIndex == column.GetLevel() : (column.Parent != null && RowIndex == column.GetLevel() || column.Columns == null))
             {
-                <td @attributes="@CellAttributes" @oncontextmenu:preventDefault="@this.CellContextMenu.HasDelegate">
+                <td @attributes="@CellAttributes" @oncontextmenu:preventDefault="@this.CellContextMenu.HasDelegate" @onkeydown:stopPropagation>
                     @if (this.Responsive)
                     {
                         <span class="rz-column-title">

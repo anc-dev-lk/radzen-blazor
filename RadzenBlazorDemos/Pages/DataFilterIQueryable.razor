@@ -20,10 +20,18 @@
                         Change=@OnSelectedIdsChange Data="@(orderIds)" AllowClear="true" Multiple="true" />
                 </FilterTemplate>
             </RadzenDataFilterProperty>
+            <RadzenDataFilterProperty TItem="Order" Property="ProductIds" Title="ProductIds" FilterValue="@finalSelectedProductIds"
+                                      Type="typeof(IEnumerable<int>)" FilterOperator="FilterOperator.In">
+                <FilterTemplate>
+                    <RadzenDropDown @bind-Value=@selectedProductIds Style="width:100%;"
+                                    Change=@OnSelectedProductIdsChange Data="@(productIds)" AllowClear="true" Multiple="true" />
+                </FilterTemplate>
+            </RadzenDataFilterProperty>
             <RadzenDataFilterProperty TItem="Order" Property="Employee.LastName" Title="Employee Last Name" />
             <MyCustomDataFilterProperty TItem="Order" Property="OrderDate" Title="Order Date">
                 <FilterTemplate>
-                    <RadzenDatePicker @bind-Value="@context.FilterValue" Style="width:100%" ShowTime=false DateFormat="d" />
+                    <RadzenDatePicker @bind-Value="@context.FilterValue" Style="width:100%" ShowTime=false DateFormat="d"
+                                      Change="@ApplyOrderDateFilter" />
                 </FilterTemplate>
             </MyCustomDataFilterProperty>
             <RadzenDataFilterProperty TItem="Order" Property="Freight" Title="Freight" />
@@ -74,8 +82,14 @@
     IEnumerable<int> selectedIds;
     IEnumerable<int> orderIds;
 
+    IEnumerable<int> finalSelectedProductIds;
+    IEnumerable<int> selectedProductIds;
+    IEnumerable<int> productIds;
+
     void OnSelectedIdsChange(object value)
     {
+        orders = orders.ToList().AsQueryable();
+
         if (selectedIds != null && !selectedIds.Any())
         {
             selectedIds = null;
@@ -87,18 +101,50 @@
         }
     }
 
+    void OnSelectedProductIdsChange(object value)
+    {
+        orders = orders.ToList().AsQueryable();
+
+        if (selectedProductIds != null && !selectedProductIds.Any())
+        {
+            selectedProductIds = null;
+        }
+
+        if (auto)
+        {
+            finalSelectedProductIds = selectedProductIds;
+        }
+    }
+
     async Task ApplyFilter()
     {
         finalSelectedIds = selectedIds;
+        finalSelectedProductIds = selectedProductIds;
         await dataFilter.Filter();
+    }
+
+    async Task ApplyOrderDateFilter()
+    { 
+        if (auto) 
+        { 
+            await dataFilter.Filter();
+        }
     }
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
-        orders = dbContext.Orders.Include("Customer").Include("Employee");
+        orders = dbContext.Orders.Include("OrderDetails.Product").Include("Customer").Include("Employee").ToList()
+            .Select(o =>
+            {
+                o.ProductIds = o.OrderDetails.Select(od => od.ProductID);
+                return o;
+            }).AsQueryable();
+
         orderIds = orders.Select(o => o.OrderID).Distinct();
+
+        productIds = orders.SelectMany(o => o.OrderDetails).Select(od => od.ProductID).Distinct();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

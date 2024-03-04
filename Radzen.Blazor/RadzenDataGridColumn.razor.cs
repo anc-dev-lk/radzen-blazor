@@ -228,6 +228,13 @@ namespace Radzen.Blazor
         }
 
         /// <summary>
+        /// Gets or sets the header tooltip.
+        /// </summary>
+        /// <value>The header tooltip.</value>
+        [Parameter]
+        public string HeaderTooltip { get; set; }
+
+        /// <summary>
         /// Gets or sets the title.
         /// </summary>
         /// <value>The title.</value>
@@ -308,7 +315,14 @@ namespace Radzen.Blazor
         /// <value>The filter placeholder value.</value>
         [Parameter]
         public string FilterPlaceholder { get; set; }
-        
+
+        /// <summary>
+        /// Gets or sets the custom filter dynamic Linq dictionary.
+        /// </summary>
+        /// <value>The custom filter dynamic Linq dictionary.</value>
+        [Parameter]
+        public string CustomFilterExpression { get; set; }
+
         /// <summary>
         /// Gets the filter placeholder.
         /// </summary>
@@ -762,6 +776,7 @@ namespace Radzen.Blazor
         object secondFilterValue;
         FilterOperator? secondFilterOperator;
         LogicalFilterOperator? logicalFilterOperator;
+        string customFilterExpression;
 
         /// <summary>
         /// Set parameters as an asynchronous operation.
@@ -875,6 +890,32 @@ namespace Radzen.Blazor
                 }
             }
 
+            if (parameters.DidParameterChange(nameof(CustomFilterExpression), CustomFilterExpression))
+            {
+                customFilterExpression = parameters.GetValueOrDefault<string>(nameof(CustomFilterExpression));
+
+                if (CustomFilterExpression != null)
+                {
+                    CustomFilterExpression = customFilterExpression;
+                    Grid.SaveSettings();
+                    if (Grid.IsVirtualizationAllowed())
+                    {
+#if NET5_0_OR_GREATER
+                        if (Grid.virtualize != null)
+                        {
+                            await Grid.virtualize.RefreshDataAsync();
+                        }
+#endif
+                    }
+                    else
+                    {
+                        await Grid.Reload();
+                    }
+
+                    return;
+                }
+            }
+            
             if (parameters.DidParameterChange(nameof(FilterOperator), FilterOperator))
             {
                 filterOperator = parameters.GetValueOrDefault<FilterOperator>(nameof(FilterOperator));
@@ -987,6 +1028,46 @@ namespace Radzen.Blazor
                     || GetFilterOperator() == FilterOperator.IsNotEmpty;
         }
 
+        internal bool HasCustomFilter()
+        {
+            return GetFilterOperator() == FilterOperator.Custom && GetCustomFilterExpression() != null;
+        }
+
+        internal bool HasActiveFilter()
+        {
+            return GetFilterValue() != null
+            || GetSecondFilterValue() != null
+            || CanSetFilterValue()
+            || HasCustomFilter();
+        }
+
+        /// <summary>
+        /// Get custom filter linq.
+        /// </summary>
+        public string GetCustomFilterExpression()
+        {
+            return customFilterExpression ?? CustomFilterExpression;
+        }
+
+        /// <summary>
+        /// Set column custom filter linq.
+        /// </summary>
+        public void SetCustomFilterExpression(string value)
+        {
+            customFilterExpression = value;
+        }
+
+        /// <summary>
+        /// Set column custom filter linq and reload grid.
+        /// </summary>
+        /// <param name="value">Filter value.</param>
+        public async Task SetCustomFilterExpressionAsync(string value)
+        {
+            SetCustomFilterExpression(value);
+            Grid.SaveSettings();
+            await Grid.FirstPage(true);
+        }
+
         /// <summary>
         /// Sets to default column filter values and operators.
         /// </summary>
@@ -1002,7 +1083,7 @@ namespace Radzen.Blazor
             FilterOperator = FilterOperator == FilterOperator.Custom
                 ? FilterOperator.Custom
                 : typeof(System.Collections.IEnumerable).IsAssignableFrom(FilterPropertyType)
-                    ? FilterOperator.Contains
+                    ? !string.IsNullOrEmpty(FilterProperty) && FilterProperty != Property ? FilterOperator.In : FilterOperator.Contains
                     : default(FilterOperator);
             SecondFilterOperator = default(FilterOperator);
             LogicalFilterOperator = default(LogicalFilterOperator);
