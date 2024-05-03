@@ -420,6 +420,8 @@ namespace Radzen.Blazor
 
         private bool IsColumnFilterPropertyTypeString(RadzenDataGridColumn<object> column)
         {
+            if (column.Type == typeof(string)) return true;
+
             var property = column.GetFilterProperty();
             var itemType = Data != null ? Data.AsQueryable().ElementType : typeof(object);
             var type = PropertyAccess.GetPropertyType(itemType, property);
@@ -427,13 +429,20 @@ namespace Radzen.Blazor
             return type == typeof(string);
         }
 
+        string prevSearch;
         int? skip;
         async Task OnLoadData(LoadDataArgs args)
         {
+            skip = args.Skip;
+
+            if (prevSearch != searchText)
+            {
+                prevSearch = searchText;
+                skip = 0;
+            }
+
             if (!LoadData.HasDelegate)
             {
-                skip = args.Skip;
-
                 var query = Query;
 
                 if (query == null)
@@ -488,15 +497,15 @@ namespace Radzen.Blazor
                     query = query.OrderBy(args.OrderBy);
                 }
 
+                count = await Task.FromResult(query.Count());
+
+                pagedData = await Task.FromResult(QueryableExtension.ToList(query.Skip(skip.HasValue ? skip.Value : 0).Take(args.Top.HasValue ? args.Top.Value : PageSize)).Cast<object>());
+
                 _internalView = query;
-
-                count = query.Count();
-
-                pagedData = QueryableExtension.ToList(query.Skip(args.Skip.HasValue ? args.Skip.Value : 0).Take(args.Top.HasValue ? args.Top.Value : PageSize)).Cast<object>();
             }
             else
             {
-                await LoadData.InvokeAsync(new Radzen.LoadDataArgs() { Skip = args.Skip, Top = args.Top, OrderBy = args.OrderBy, Filter = searchText });
+                await LoadData.InvokeAsync(new Radzen.LoadDataArgs() { Skip = skip, Top = args.Top, OrderBy = args.OrderBy, Filter = searchText });
             }
         }
 
@@ -548,7 +557,7 @@ namespace Radzen.Blazor
                     {
                         SelectedItem = internalValue;
                     }
-                    SelectedItemChanged?.Invoke(SelectedItem);
+                    SelectedItemChanged.InvokeAsync(SelectedItem);
                     selectedItems.Clear();
                     selectedItems.Add(SelectedItem);
                 }
@@ -587,6 +596,10 @@ namespace Radzen.Blazor
             {
                 selectedItem = null;
                 selectedItems.Clear();
+                if (grid != null)
+                {
+                    InvokeAsync(() => grid.SelectRow(null));
+                }
             }
         }
 
@@ -665,7 +678,7 @@ namespace Radzen.Blazor
                     await grid.NextPage();
                 }
             }
-            else if (key == "Enter")
+            else if (key == "Enter" || key == "NumpadEnter")
             {
                 preventKeydown = false;
 
@@ -697,11 +710,20 @@ namespace Radzen.Blazor
 
                 await OpenPopup(key, isFilter);
             }
-            else if (key == "Escape" || key == "Tab")
+            else if (key == "Escape")
             {
                 preventKeydown = false;
 
                 await JSRuntime.InvokeVoidAsync("Radzen.closePopup", PopupID);
+            }
+            else if (key == "Tab")
+            {
+                preventKeydown = false;
+
+                if (!ShowSearch && !ShowAdd)
+                {
+                    await JSRuntime.InvokeVoidAsync("Radzen.closePopup", PopupID);
+                }
             }
             else if (key == "Delete" && AllowClear)
             {
@@ -739,6 +761,15 @@ namespace Radzen.Blazor
                 _view = null;
 
                 await InvokeAsync(RefreshAfterFilter);
+            }
+        }
+
+        async Task CloseOnEscape(KeyboardEventArgs args)
+        {
+            var key = args.Code != null ? args.Code : args.Key; 
+            if (key == "Escape") 
+            {
+                await JSRuntime.InvokeVoidAsync("Radzen.closePopup", PopupID); 
             }
         }
 
@@ -913,6 +944,14 @@ namespace Radzen.Blazor
             {
                 return grid;
             }
+        }
+
+        /// <summary>
+        /// Resets component and deselects row
+        /// </summary>
+        public new async Task Reset() {
+            base.Reset();
+            await grid.SelectRow(null);
         }
     }
 }

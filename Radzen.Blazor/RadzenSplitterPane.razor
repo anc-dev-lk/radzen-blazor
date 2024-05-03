@@ -6,6 +6,10 @@
 {
     <div id="@GetId()" @attributes="Attributes" class="@GetComponentCssClass()" style="flex-basis: @Size; @Style" data-index="@Index">
         @ChildContent
+        @if (Splitter.IsResizing)
+        {
+            <div class="rz-splitter-mask" />
+        }
     </div>
 
 
@@ -14,7 +18,7 @@
         <div class="@GetComponentBarCssClass()"
              @onclick:preventDefault="true"
              @onclick:stopPropagation="true"
-             @onmousedown=@(args => Splitter.StartResize(args, Index))>
+             @onpointerdown=@(args => Splitter.StartResize(args, Index))>
 
             @if (IsCollapsible)
             {

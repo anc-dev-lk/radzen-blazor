@@ -269,7 +269,7 @@ namespace Radzen
         /// </summary>
         /// <value>The selected item changed.</value>
         [Parameter]
-        public Action<object> SelectedItemChanged { get; set; }
+        public EventCallback<object> SelectedItemChanged { get; set; }
 
         /// <summary>
         /// The selected items
@@ -337,6 +337,8 @@ namespace Radzen
             await Change.InvokeAsync(internalValue);
 
             StateHasChanged();
+
+            await JSRuntime.InvokeVoidAsync("Radzen.focusElement", GetId());
         }
 
         internal bool IsAllSelected()
@@ -441,19 +443,32 @@ namespace Radzen
 
                 if (!string.IsNullOrEmpty(ValueProperty))
                 {
-                    valuePropertyGetter = PropertyAccess.Getter<object, object>(ValueProperty, type);
+                    valuePropertyGetter = GetGetter(ValueProperty, type);
                 }
 
                 if (!string.IsNullOrEmpty(TextProperty))
                 {
-                    textPropertyGetter = PropertyAccess.Getter<object, object>(TextProperty, type);
+                    textPropertyGetter = GetGetter(TextProperty, type);
                 }
 
                 if (!string.IsNullOrEmpty(DisabledProperty))
                 {
-                    disabledPropertyGetter = PropertyAccess.Getter<object, object>(DisabledProperty, type);
+                    disabledPropertyGetter = GetGetter(DisabledProperty, type);
                 }
             }
+        }
+
+        Func<object, object> GetGetter(string propertyName, Type type)
+        {
+            if (propertyName?.Contains("[") == true)
+            {
+                var getter = typeof(PropertyAccess).GetMethod("Getter", [typeof(string), typeof(Type)]);
+                var getterMethod = getter.MakeGenericMethod([type, typeof(object)]);
+
+                return (i) => getterMethod.Invoke(i, [propertyName, type]);
+            }
+
+            return PropertyAccess.Getter<object, object>(propertyName, type);
         }
 
         internal Func<object, object> valuePropertyGetter;
@@ -470,23 +485,23 @@ namespace Radzen
         {
             if (item != null)
             {
-                if (property == TextProperty && textPropertyGetter != null)
-                {
-                    return textPropertyGetter(item);
-                }
-                else if (property == ValueProperty && valuePropertyGetter != null)
-                {
-                    return valuePropertyGetter(item);
-                }
-                else if (property == DisabledProperty && disabledPropertyGetter != null)
-                {
-                    return disabledPropertyGetter(item);
-                }
-
                 var enumValue = item as Enum;
                 if (enumValue != null)
                 {
                     return Radzen.Blazor.EnumExtensions.GetDisplayDescription(enumValue);
+                }
+
+                if (property == TextProperty)
+                {
+                    return textPropertyGetter != null ? textPropertyGetter(item) : PropertyAccess.GetItemOrValueFromProperty(item, property);
+                }
+                else if (property == ValueProperty)
+                {
+                    return valuePropertyGetter != null ? valuePropertyGetter(item) : PropertyAccess.GetItemOrValueFromProperty(item, property);
+                }
+                else if (property == DisabledProperty)
+                {
+                    return disabledPropertyGetter != null ? disabledPropertyGetter(item) : PropertyAccess.GetItemOrValueFromProperty(item, property);
                 }
             }
 
@@ -625,7 +640,7 @@ namespace Radzen
                 if (IsVirtualizationAllowed())
                 {
 #if NET5_0_OR_GREATER
-                    items = virtualItems;
+                    items = virtualItems ?? Enumerable.Empty<object>().ToList();
 #endif
                 }
                 else
@@ -648,7 +663,11 @@ namespace Radzen
 
                     if (!Multiple && !popupOpened && shouldSelectOnChange != false)
                     {
-                        await OnSelectItem(items.ElementAt(selectedIndex), true);
+                        var itemToSelect = items.ElementAtOrDefault(selectedIndex);
+                        if (itemToSelect != null)
+                        {
+                            await OnSelectItem(itemToSelect, true);
+                        }
                     }
                 }
                 catch (Exception)
@@ -656,14 +675,18 @@ namespace Radzen
                     //
                 }
             }
-            else if (key == "Enter")
+            else if (key == "Enter" || key == "NumpadEnter")
             {
                 preventKeydown = true;
 
                 if (selectedIndex >= 0 && selectedIndex <= items.Count() - 1)
                 {
                     await JSRuntime.InvokeAsync<string>("Radzen.setInputValue", search, $"{searchText}".Trim());
-                    await OnSelectItem(items.ElementAt(selectedIndex), true);
+                    var itemToSelect = items.ElementAtOrDefault(selectedIndex);
+                    if (itemToSelect != null)
+                    {
+                        await OnSelectItem(itemToSelect, true);
+                    }
                 }
 
                 var popupOpened = await JSRuntime.InvokeAsync<bool>("Radzen.popupOpened", PopupID);
@@ -713,9 +736,47 @@ namespace Radzen
             }
             else 
             {
+                var filteredItems = GetView(items.AsQueryable(), 
+                    args.Key, 
+                    StringFilterOperator.StartsWith, 
+                    FilterCaseSensitivity.CaseInsensitive)
+                    .Cast<object>()
+                    .ToList();
+
+
+                if (previousKey != args.Key)
+                {
+                    previousKey = args.Key;
+                    itemIndex = 0;
+                }
+
+                itemIndex = itemIndex + 1 >= filteredItems.Count() ? 0 : itemIndex + 1;
+                var itemToSelect = filteredItems.ElementAtOrDefault(itemIndex);
+
+                if (itemToSelect != null)
+                {
+                    if (!Multiple)
+                    {
+                        await SelectItem(itemToSelect);
+                    }
+
+                    var result = items.Select((x, i) => new { Item = x, Index = i }).FirstOrDefault(itemWithIndex => object.Equals(itemWithIndex.Item, itemToSelect));
+                    if (result != null)
+                    {
+                        if (!Multiple)
+                        {
+                            selectedIndex = result.Index;
+                        }
+                        await JSRuntime.InvokeVoidAsync("Radzen.selectListItem", list, list, result.Index);
+                    }                    
+                }
+
                 preventKeydown = false;
             }
         }
+
+        int itemIndex;
+        string previousKey;
 
         /// <summary>
         /// Handles the <see cref="E:FilterKeyPress" /> event.
@@ -986,6 +1047,71 @@ namespace Radzen
             }
         }
 
+        IQueryable GetView(IQueryable source, string value, StringFilterOperator? op = null, FilterCaseSensitivity? cs = null)
+        {
+            IQueryable result;
+
+            if (!string.IsNullOrEmpty(value))
+            {
+                var ignoreCase = (cs ?? FilterCaseSensitivity) == FilterCaseSensitivity.CaseInsensitive;
+
+                var query = new List<string>();
+
+                if (!string.IsNullOrEmpty(TextProperty))
+                {
+                    query.Add(TextProperty);
+                }
+
+                if (typeof(EnumerableQuery).IsAssignableFrom(source.GetType()))
+                {
+                    query.Add("ToString()");
+                }
+
+                if (ignoreCase)
+                {
+                    query.Add("ToLower()");
+                }
+
+                query.Add($"{Enum.GetName(typeof(StringFilterOperator), op ?? FilterOperator)}(@0)");
+
+                var search = ignoreCase ? value.ToLower() : value;
+
+                if (source.ElementType == typeof(Enum))
+                {
+                    result = source.Cast<Enum>()
+                        .Where((Func<Enum, bool>)(i =>
+                        {
+                            var v = ignoreCase ? i.GetDisplayDescription().ToLower() : i.GetDisplayDescription();
+
+                            if (FilterOperator == StringFilterOperator.Contains)
+                            {
+                                return v.Contains(search);
+                            }
+                            else if (FilterOperator == StringFilterOperator.StartsWith)
+                            {
+                                return v.StartsWith(search);
+                            }
+                            else if (FilterOperator == StringFilterOperator.EndsWith)
+                            {
+                                return v.EndsWith(search);
+                            }
+
+                            return v == search;
+                        })).AsQueryable();
+                }
+                else
+                {
+                    result = source.Where(String.Join(".", query), search);
+                }
+            }
+            else
+            {
+                result = source;
+            }
+
+            return result;
+        }
+
         /// <summary>
         /// Gets the view.
         /// </summary>
@@ -996,70 +1122,7 @@ namespace Radzen
             {
                 if (_view == null && Query != null)
                 {
-                    if (!string.IsNullOrEmpty(searchText))
-                    {
-                        var ignoreCase = FilterCaseSensitivity == FilterCaseSensitivity.CaseInsensitive;
-
-                        var query = new List<string>();
-
-                        if (!string.IsNullOrEmpty(TextProperty))
-                        {
-                            query.Add(TextProperty);
-                        }
-
-                        if (typeof(EnumerableQuery).IsAssignableFrom(Query.GetType()))
-                        {
-                            query.Add("ToString()");
-                        }
-
-                        if (ignoreCase)
-                        {
-                            query.Add("ToLower()");
-                        }
-
-                        query.Add($"{Enum.GetName(typeof(StringFilterOperator), FilterOperator)}(@0)");
-
-                        var search = ignoreCase ? searchText.ToLower() : searchText;
-
-                        if (Query.ElementType == typeof(Enum))
-                        {
-                            _view = Query.Cast<Enum>()
-                                .Where((Func<Enum, bool>)(i =>
-                                {
-                                    var value = ignoreCase ? i.GetDisplayDescription().ToLower() : i.GetDisplayDescription();
-
-                                    if (FilterOperator == StringFilterOperator.Contains)
-                                    {
-                                        return value.Contains(search);
-                                    }
-                                    else if (FilterOperator == StringFilterOperator.StartsWith)
-                                    {
-                                        return value.StartsWith(search);
-                                    }
-                                    else if (FilterOperator == StringFilterOperator.EndsWith)
-                                    {
-                                        return value.EndsWith(search);
-                                    }
-
-                                    return value == search;
-                                })).AsQueryable();
-                        }
-                        else
-                        {
-                            _view = Query.Where(String.Join(".", query), search);
-                        }
-                    }
-                    else
-                    {
-                        if (IsVirtualizationAllowed())
-                        {
-                            _view = Query;
-                        }
-                        else
-                        {
-                            _view = (typeof(IQueryable).IsAssignableFrom(Data.GetType())) ? (Query as IEnumerable).Cast<object>().ToList().AsQueryable() : Query;
-                        }
-                    }
+                    _view = GetView(Query, searchText);
                 }
 
                 return _view;
@@ -1129,7 +1192,7 @@ namespace Radzen
 
                 SetSelectedIndexFromSelectedItem();
 
-                SelectedItemChanged?.Invoke(selectedItem);
+                await SelectedItemChanged.InvokeAsync(selectedItem);
             }
             else
             {
@@ -1271,8 +1334,6 @@ namespace Radzen
                     }
 
                     SetSelectedIndexFromSelectedItem();
-
-                    SelectedItemChanged?.Invoke(selectedItem);
                 }
                 else
                 {
