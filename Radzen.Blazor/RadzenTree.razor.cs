@@ -120,6 +120,13 @@ namespace Radzen.Blazor
         [Parameter]
         public Action<TreeItemRenderEventArgs> ItemRender { get; set; }
 
+        /// <summary>
+        /// Gets or sets the context menu callback.
+        /// </summary>
+        /// <value>The context menu callback.</value>
+        [Parameter]
+        public EventCallback<TreeItemContextMenuEventArgs> ItemContextMenu { get; set; }
+
         internal Tuple<Radzen.TreeItemRenderEventArgs, IReadOnlyDictionary<string, object>> ItemAttributes(RadzenTreeItem item)
         {
             var args = new TreeItemRenderEventArgs() { Data = item.GetAllChildValues(), Value = item.Value };
@@ -225,16 +232,17 @@ namespace Radzen.Blazor
         [Parameter]
         public EventCallback<IEnumerable<object>> CheckedValuesChanged { get; set; }
 
-        void RenderTreeItem(RenderTreeBuilder builder, object data, RenderFragment<RadzenTreeItem> template, Func<object, string> text,
+        void RenderTreeItem(RenderTreeBuilder builder, object data, RenderFragment<RadzenTreeItem> template, Func<object, string> text, Func<object, bool> checkable,
             Func<object, bool> hasChildren, Func<object, bool> expanded, Func<object, bool> selected, IEnumerable children = null)
         {
             builder.OpenComponent<RadzenTreeItem>(0);
             builder.AddAttribute(1, nameof(RadzenTreeItem.Text), text(data));
-            builder.AddAttribute(2, nameof(RadzenTreeItem.Value), data);
-            builder.AddAttribute(3, nameof(RadzenTreeItem.HasChildren), hasChildren(data));
-            builder.AddAttribute(4, nameof(RadzenTreeItem.Template), template);
-            builder.AddAttribute(5, nameof(RadzenTreeItem.Expanded), expanded(data));
-            builder.AddAttribute(6, nameof(RadzenTreeItem.Selected), Value == data || selected(data));
+            builder.AddAttribute(2, nameof(RadzenTreeItem.Checkable), checkable(data));
+            builder.AddAttribute(3, nameof(RadzenTreeItem.Value), data);
+            builder.AddAttribute(4, nameof(RadzenTreeItem.HasChildren), hasChildren(data));
+            builder.AddAttribute(5, nameof(RadzenTreeItem.Template), template);
+            builder.AddAttribute(6, nameof(RadzenTreeItem.Expanded), expanded(data));
+            builder.AddAttribute(7, nameof(RadzenTreeItem.Selected), Value == data || selected(data));
             builder.SetKey(data);
         }
 
@@ -245,15 +253,25 @@ namespace Radzen.Blazor
             return new RenderFragment(builder =>
             {
                 Func<object, string> text = null;
+                Func<object, bool> checkable = null;
 
                 foreach (var data in children)
                 {
                     if (text == null)
                     {
-                        text = level.Text ?? Getter<string>(data, level.TextProperty);
+                        text = level.Text ?? 
+                            (!string.IsNullOrEmpty(level.TextProperty) ? Getter<string>(data, level.TextProperty) : null) ??
+                            (o => "");
                     }
 
-                    RenderTreeItem(builder, data, level.Template, text, level.HasChildren, level.Expanded, level.Selected);
+                    if (checkable == null)
+                    {
+                        checkable = level.Checkable ??
+                            (!string.IsNullOrEmpty(level.CheckableProperty) ? Getter<bool>(data, level.CheckableProperty) : null) ??
+                            (o => true);
+                    }
+
+                    RenderTreeItem(builder, data, level.Template, text, checkable, level.HasChildren, level.Expanded, level.Selected);
 
                     var hasChildren = level.HasChildren(data);
 
@@ -323,6 +341,7 @@ namespace Radzen.Blazor
                 var childContent = new RenderFragment(builder =>
                 {
                     Func<object, string> text = null;
+                    Func<object, bool> checkable = null;
                     var children = args.Children;
 
                     foreach (var data in children.Data)
@@ -332,7 +351,12 @@ namespace Radzen.Blazor
                             text = children.Text ?? Getter<string>(data, children.TextProperty);
                         }
 
-                        RenderTreeItem(builder, data, children.Template, text, children.HasChildren, children.Expanded, children.Selected);
+                        if (checkable == null)
+                        {
+                            checkable = children.Checkable ?? Getter<bool>(data, children.CheckableProperty);
+                        }
+
+                        RenderTreeItem(builder, data, children.Template, text, checkable, children.HasChildren, children.Expanded, children.Selected);
                         builder.CloseComponent();
                     }
                 });

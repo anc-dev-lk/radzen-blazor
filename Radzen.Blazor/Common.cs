@@ -560,6 +560,58 @@ namespace Radzen
     }
 
     /// <summary>
+    /// Supplies information about RadzenDropDown ItemRender event.
+    /// </summary>
+    public class DropDownBaseItemRenderEventArgs<TValue>
+    {
+        /// <summary>
+        /// Gets the data item.
+        /// </summary>
+        public object Item { get; internal set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this item is visible.
+        /// </summary>
+        /// <value><c>true</c> if visible; otherwise, <c>false</c>.</value>
+        [Parameter]
+        public bool Visible { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this item is visible.
+        /// </summary>
+        /// <value><c>true</c> if visible; otherwise, <c>false</c>.</value>
+        [Parameter]
+        public bool Disabled { get; set; }
+
+        /// <summary>
+        /// Gets or sets the row HTML attributes.
+        /// </summary>
+        public IDictionary<string, object> Attributes { get; private set; } = new Dictionary<string, object>();
+    }
+
+    /// <summary>
+    /// Supplies information about RadzenDropDown ItemRender event.
+    /// </summary>
+    public class DropDownItemRenderEventArgs<TValue> : DropDownBaseItemRenderEventArgs<TValue>
+    {
+        /// <summary>
+        /// Gets the DropDown.
+        /// </summary>
+        public RadzenDropDown<TValue> DropDown { get; internal set; }
+    }
+
+    /// <summary>
+    /// Supplies information about RadzenDropDown ItemRender event.
+    /// </summary>
+    public class ListBoxItemRenderEventArgs<TValue> : DropDownBaseItemRenderEventArgs<TValue>
+    {
+        /// <summary>
+        /// Gets the DropDown.
+        /// </summary>
+        public RadzenListBox<TValue> ListBox { get; internal set; }
+    }
+
+    /// <summary>
     /// Supplies information about a <see cref="RadzenDatePicker{TValue}.DateRender" /> event that is being raised.
     /// </summary>
     public class DateRenderEventArgs
@@ -645,12 +697,12 @@ namespace Radzen
     {
         /// <summary>
         /// Gets or sets the appointment data.
-        /// </summary> 
+        /// </summary>
         public AppointmentData Appointment { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the time span.
-        /// </summary> 
+        /// </summary>
         public TimeSpan TimeSpan { get; set; }
     }
 
@@ -822,6 +874,22 @@ namespace Radzen
     }
 
     /// <summary>
+    /// Supplies information about a <see cref="RadzenTree.ItemContextMenu" /> event that is being raised.
+    /// </summary>
+    public class TreeItemContextMenuEventArgs : Microsoft.AspNetCore.Components.Web.MouseEventArgs
+    {
+        /// <summary>
+        /// Gets the tree item text.
+        /// </summary>
+        public string Text { get; internal set; }
+
+        /// <summary>
+        /// Gets the tree item value.
+        /// </summary>
+        public object Value { get; internal set; }
+    }
+
+    /// <summary>
     /// Supplies information about a <see cref="RadzenDataGrid{TItem}.RowClick" /> or <see cref="RadzenDataGrid{TItem}.RowDoubleClick" /> event that is being raised.
     /// </summary>
     /// <typeparam name="T"></typeparam>
@@ -922,7 +990,7 @@ namespace Radzen
         /// <summary>
         /// Gets the name of the selected file.
         /// </summary>
-        public string Name 
+        public string Name
         {
             get
             {
@@ -2672,9 +2740,17 @@ namespace Radzen
         /// </summary>
         public Func<object, string> Text { get; set; }
         /// <summary>
+        /// Gets or sets the function which returns a value for the <see cref="RadzenTreeItem.Checkable" /> of a child item.
+        /// </summary>
+        public Func<object, bool> Checkable { get; set; }
+        /// <summary>
         /// Gets or sets the name of the property which provides the value for the <see cref="RadzenTreeItem.Text" /> of a child item.
         /// </summary>
         public string TextProperty { get; set; }
+        /// <summary>
+        /// Gets or sets the name of the property which provides the value for the <see cref="RadzenTreeItem.Checkable" /> of a child item.
+        /// </summary>
+        public string CheckableProperty { get; set; }
         /// <summary>
         /// Gets or sets a function which returns whether a child item has children of its own. Called with an item from <see cref="Data" />.
         /// By default all items are considered to have children.
@@ -2703,7 +2779,7 @@ namespace Radzen
     public class TreeItemRenderEventArgs
     {
         /// <summary>
-        /// Gets or sets the item HTML attributes. 
+        /// Gets or sets the item HTML attributes.
         /// </summary>
         public IDictionary<string, object> Attributes { get; private set; } = new Dictionary<string, object>();
 
@@ -2718,7 +2794,7 @@ namespace Radzen
         /// Gets or sets a value indicating whether this item is checked.
         /// </summary>
         /// <value><c>true</c> if expanded; otherwise, <c>false</c>.</value>
-        public bool? Checked 
+        public bool? Checked
         {
             get
             {

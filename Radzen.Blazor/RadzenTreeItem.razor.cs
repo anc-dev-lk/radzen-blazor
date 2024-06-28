@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Radzen.Blazor.Rendering;
 using System;
 using System.Collections;
@@ -44,6 +45,12 @@ namespace Radzen.Blazor
         /// </summary>
         [Parameter]
         public string Text { get; set; }
+
+        /// <summary>
+        /// Gets or sets value indicating if the tree item checkbox can be checked.
+        /// </summary>
+        [Parameter]
+        public bool Checkable { get; set; } = true;
 
         private bool expanded;
 
@@ -430,6 +437,47 @@ namespace Radzen.Blazor
             }
 
             return false;
+        }
+
+        async Task OnContextMenu(MouseEventArgs args)
+        {
+#if NET5_0_OR_GREATER
+            await Tree.ItemContextMenu.InvokeAsync(new TreeItemContextMenuEventArgs()
+            {
+                Text = Text,
+                Value = Value,
+                AltKey = args.AltKey,
+                Button = args.Button,
+                Buttons = args.Buttons,
+                ClientX = args.ClientX,
+                ClientY = args.ClientY,
+                CtrlKey = args.CtrlKey,
+                Detail = args.Detail,
+                MetaKey = args.MetaKey,
+                OffsetX = args.OffsetX,
+                OffsetY = args.OffsetY,
+                ScreenX = args.ScreenX,
+                ScreenY = args.ScreenY,
+                ShiftKey = args.ShiftKey
+            });
+#else
+            await Tree.ItemContextMenu.InvokeAsync(new TreeItemContextMenuEventArgs()
+            {
+                Text = Text,
+                Value = Value,
+                AltKey = args.AltKey,
+                Button = args.Button,
+                Buttons = args.Buttons,
+                ClientX = args.ClientX,
+                ClientY = args.ClientY,
+                CtrlKey = args.CtrlKey,
+                Detail = args.Detail,
+                MetaKey = args.MetaKey,
+                ScreenX = args.ScreenX,
+                ScreenY = args.ScreenY,
+                ShiftKey = args.ShiftKey
+            });
+#endif
         }
     }
 }
