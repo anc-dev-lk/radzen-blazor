@@ -1,0 +1,43 @@
+//Theme color
+
+$primary: #29bdb5;
+$secondary: #29bdb5;
+$info: #29bdb5;
+
+// PanelMenu
+
+$panel-menu-color: var(--rz-text-color);
+$panel-menu-hover-color: $panel-menu-color;
+$panel-menu-background-color: var(--rz-base-background-color);
+$panel-menu-hover-background-color: rgba($primary, .3);
+
+$panel-menu-item-border: none;
+$panel-menu-item-active-color: $panel-menu-color;
+$panel-menu-item-background-color: rgba($primary, .1);
+$panel-menu-item-active-background-color: rgba($primary, .3);
+
+$panel-menu-item-2nd-level-background-color: rgba($primary, .2);
+$panel-menu-item-2nd-level-hover-background-color: rgba($primary, .4);
+$panel-menu-item-2nd-level-active-background-color: rgba($primary, .4);
+
+$panel-menu-item-3rd-level-background-color: rgba($primary, .4);
+$panel-menu-item-3rd-level-hover-background-color: rgba($primary, .6);
+$panel-menu-item-3rd-level-active-background-color: rgba($primary, .6);
+
+//Scrollbar
+
+$scrollbar-color: var(--rz-base-300);
+
+//Grid
+
+$grid-stripe-background-color: var(--rz-base-background-color);
+$grid-filter-background-color: var(--rz-base-background-color);
+$grid-filter-border: none;
+$grid-header-cell-border-bottom: var(--rz-border-normal);
+$grid-frozen-cell-background-color: var(--rz-base-background-color);
+$grid-frozen-cell-border: none;
+
+//Header
+$header-z: 4;
+
+$grid-filter-buttons-background-color: var(--rz-base-background-color);
