@@ -170,9 +170,9 @@ namespace Radzen.Blazor
 
             if (v < 0)
             {
-                newHour = 23;
-                newMinute = 59;
-                newSecond = 59;
+                newHour = string.IsNullOrEmpty(HoursStep) ? 23 : 0;
+                newMinute = string.IsNullOrEmpty(MinutesStep) ? 59 : 0;
+                newSecond = string.IsNullOrEmpty(SecondsStep) ? 59 : 0;
             }
 
             var newValue = new DateTime(CurrentDate.Year, CurrentDate.Month, CurrentDate.Day, newHour > 23 || newHour < 0 ? 0 : newHour, newMinute, newSecond);
@@ -697,7 +697,7 @@ namespace Radzen.Blazor
 
         private string ButtonClasses
         {
-            get => $"rz-button-icon-left rzi rzi-{(TimeOnly ? "time" : "calendar")}";
+            get => $"notranslate rz-button-icon-left rzi rzi-{(TimeOnly ? "time" : "calendar")}";
         }
 
         /// <summary>
@@ -982,7 +982,7 @@ namespace Radzen.Blazor
             if (ShowTimeOkButton)
             {
                 CurrentDate = new DateTime(newValue.Year, newValue.Month, newValue.Day, CurrentDate.Hour, CurrentDate.Minute, CurrentDate.Second);
-                await OkClick(false);
+                await OkClick(!ShowTime);
             }
             else
             {
@@ -1174,10 +1174,13 @@ namespace Radzen.Blazor
             {
                 preventKeyPress = true;
 
-                await SetDay(FocusedDate);
+                if (!DateAttributes(FocusedDate).Disabled)
+                {
+                    await SetDay(FocusedDate);
 
-                await ClosePopup();
-                await FocusAsync();
+                    await ClosePopup();
+                    await FocusAsync();
+                }
             }
             else if (key == "Escape")
             {
@@ -1250,6 +1253,8 @@ namespace Radzen.Blazor
 
         internal async Task TogglePopup()
         {
+            if (Inline) return;
+
             if (PopupRenderMode == PopupRenderMode.Initial)
             {
                 await JSRuntime.InvokeVoidAsync("Radzen.togglePopup", Element, PopupID, false, null, null, true, true);
@@ -1262,6 +1267,8 @@ namespace Radzen.Blazor
 
         async Task ClosePopup()
         {
+            if (Inline) return;
+
             if (PopupRenderMode == PopupRenderMode.Initial)
             {
                 await JSRuntime.InvokeVoidAsync("Radzen.closePopup", PopupID);

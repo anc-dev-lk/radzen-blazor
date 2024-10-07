@@ -59,6 +59,12 @@ window.Radzen = {
               return formatted;
           }
 
+          if (window.safari !== undefined) {
+              el.onblur = function (e) {
+                  el.dispatchEvent(new Event('change'));
+              };
+          }
+
           var start = el.selectionStart != el.value.length ? el.selectionStart : -1;
           var end = el.selectionEnd != el.value.length ? el.selectionEnd : -1;
 
@@ -349,9 +355,10 @@ window.Radzen = {
       if (!el || !ref) return;
 
       var hidden = el.querySelector('input[type="hidden"]');
-      var inputs = [...el.querySelectorAll('.rz-security-code-input')];
 
       Radzen[id] = {};
+
+      Radzen[id].inputs = [...el.querySelectorAll('.rz-security-code-input')];
 
       Radzen[id].paste = function (e) {
           if (e.clipboardData) {
@@ -362,15 +369,15 @@ window.Radzen = {
                       if (isNumber && isNaN(+value[i])) {
                           continue;
                       }
-                      inputs[i].value = value[i];
+                      Radzen[id].inputs[i].value = value[i];
                   }
 
-                  var code = inputs.map(i => i.value).join('').trim();
+                  var code = Radzen[id].inputs.map(i => i.value).join('').trim();
                   hidden.value = code;
 
                   ref.invokeMethodAsync('RadzenSecurityCode.OnValueChange', code);
 
-                  inputs[inputs.length - 1].focus();
+                  Radzen[id].inputs[Radzen[id].inputs.length - 1].focus();
               }
 
               e.preventDefault();
@@ -400,14 +407,14 @@ window.Radzen = {
 
           e.currentTarget.value = ch;
 
-          var value = inputs.map(i => i.value).join('').trim();
+          var value = Radzen[id].inputs.map(i => i.value).join('').trim();
           hidden.value = value;
 
           ref.invokeMethodAsync('RadzenSecurityCode.OnValueChange', value);
 
-          var index = inputs.indexOf(e.currentTarget);
-          if (index < inputs.length - 1) {
-              inputs[index + 1].focus();
+          var index = Radzen[id].inputs.indexOf(e.currentTarget);
+          if (index < Radzen[id].inputs.length - 1) {
+              Radzen[id].inputs[index + 1].focus();
           }
       }
 
@@ -416,22 +423,22 @@ window.Radzen = {
           if (keyCode == 8) {
               e.currentTarget.value = '';
 
-              var value = inputs.map(i => i.value).join('').trim();
+              var value = Radzen[id].inputs.map(i => i.value).join('').trim();
               hidden.value = value;
 
               ref.invokeMethodAsync('RadzenSecurityCode.OnValueChange', value);
 
-              var index = inputs.indexOf(e.currentTarget);
+              var index = Radzen[id].inputs.indexOf(e.currentTarget);
               if (index > 0) {
-                  inputs[index - 1].focus();
+                  Radzen[id].inputs[index - 1].focus();
               }
           }
       }
 
-      for (var i = 0; i < inputs.length; i++) {
-          inputs[i].addEventListener(navigator.userAgent.match(/Android/i) ? 'textInput' : 'keypress', Radzen[id].keyPress);
-          inputs[i].addEventListener(navigator.userAgent.match(/Android/i) ? 'textInput' : 'keydown', Radzen[id].keyDown);
-          inputs[i].addEventListener('paste', Radzen[id].paste);
+      for (var i = 0; i < Radzen[id].inputs.length; i++) {
+          Radzen[id].inputs[i].addEventListener(navigator.userAgent.match(/Android/i) ? 'textInput' : 'keypress', Radzen[id].keyPress);
+          Radzen[id].inputs[i].addEventListener(navigator.userAgent.match(/Android/i) ? 'textInput' : 'keydown', Radzen[id].keyDown);
+          Radzen[id].inputs[i].addEventListener('paste', Radzen[id].paste);
       }
   },
   createSlider: function (
@@ -490,7 +497,7 @@ window.Radzen = {
             ? e.targetTouches[0].pageX - e.target.getBoundingClientRect().left
             : e.offsetX;
         var percent = offsetX / parent.offsetWidth;
-        var newValue = percent * max;
+        var newValue = percent * (max - min) + min;
         var oldValue = range ? value[slider.isMin ? 0 : 1] : value;
         if (newValue >= min && newValue <= max && newValue != oldValue) {
           slider.invokeMethodAsync(
@@ -602,9 +609,9 @@ window.Radzen = {
                 break;
         }
     } else {
-        while (ul.nextSelectedIndex > 0) {
+        while (ul.nextSelectedIndex >= 0) {
             ul.nextSelectedIndex--;
-            if (!childNodes[ul.nextSelectedIndex].classList.contains('rz-state-disabled'))
+            if (!childNodes[ul.nextSelectedIndex] || !childNodes[ul.nextSelectedIndex].classList.contains('rz-state-disabled'))
                 break;
         }
     }
@@ -674,25 +681,25 @@ window.Radzen = {
     if (key == 'ArrowDown') {
         while (table.nextSelectedIndex < rows.length - 1) {
             table.nextSelectedIndex++;
-            if (!rows[table.nextSelectedIndex].classList.contains('rz-state-disabled'))
+            if (!rows[table.nextSelectedIndex] || !rows[table.nextSelectedIndex].classList.contains('rz-state-disabled'))
                 break;
         }
     } else if (key == 'ArrowUp') {
         while (table.nextSelectedIndex > 0) {
             table.nextSelectedIndex--;
-            if (!rows[table.nextSelectedIndex].classList.contains('rz-state-disabled'))
+            if (!rows[table.nextSelectedIndex] || !rows[table.nextSelectedIndex].classList.contains('rz-state-disabled'))
                 break;
         }
     } else if (key == 'ArrowRight') {
         while (table.nextSelectedCellIndex < rows[table.nextSelectedIndex].cells.length - 1) {
             table.nextSelectedCellIndex++;
-            if (!rows[table.nextSelectedIndex].cells[table.nextSelectedCellIndex].classList.contains('rz-state-disabled'))
+            if (!rows[table.nextSelectedIndex] || !rows[table.nextSelectedIndex].cells[table.nextSelectedCellIndex] || !rows[table.nextSelectedIndex].cells[table.nextSelectedCellIndex].classList.contains('rz-state-disabled'))
                 break;
         }
     } else if (key == 'ArrowLeft') {
         while (table.nextSelectedCellIndex > 0) {
             table.nextSelectedCellIndex--;
-            if (!rows[table.nextSelectedIndex].cells[table.nextSelectedCellIndex].classList.contains('rz-state-disabled'))
+            if (!rows[table.nextSelectedIndex] || !rows[table.nextSelectedIndex].cells[table.nextSelectedCellIndex] || !rows[table.nextSelectedIndex].cells[table.nextSelectedCellIndex].classList.contains('rz-state-disabled'))
                 break;
         }
     } else if (isVirtual && (key == 'PageDown' || key == 'End')) {
@@ -701,7 +708,7 @@ window.Radzen = {
         table.nextSelectedIndex = 1;
     }
 
-    if (key == 'ArrowLeft' || key == 'ArrowRight' || (key == 'ArrowUp' && table.nextSelectedIndex == 0 && table.parentNode.scrollTop == 0)) {
+    if (key == 'ArrowLeft' || key == 'ArrowRight' || (key == 'ArrowUp' && cellIndex != null && table.nextSelectedIndex == 0 && table.parentNode.scrollTop == 0)) {
         var highlightedCells = rows[table.nextSelectedIndex].querySelectorAll('.rz-state-focused');
         if (highlightedCells.length) {
             for (var i = 0; i < highlightedCells.length; i++) {
@@ -938,10 +945,13 @@ window.Radzen = {
       return;
       }
 
-    if (e.code === 'NumpadDecimal') {
-      e.target.value += decimalSeparator;
-      e.preventDefault();
-      return;
+      if (e.code === 'NumpadDecimal') {
+          var cursorPosition = e.target.selectionEnd;
+          e.target.value = [e.target.value.slice(0, e.target.selectionStart), decimalSeparator, e.target.value.slice(e.target.selectionEnd)].join('');
+          e.target.selectionStart = ++cursorPosition;
+          e.target.selectionEnd = cursorPosition;
+          e.preventDefault();
+          return;
     }
 
     var ch = String.fromCharCode(e.charCode);
@@ -1163,6 +1173,7 @@ window.Radzen = {
         if (lastPopup) {
             currentPopup.instance = lastPopup.instance;
             currentPopup.callback = lastPopup.callback;
+            currentPopup.parent = lastPopup.parent;
         }
 
         if(e.type == 'contextmenu' || !e.target || !closeOnDocumentClick) return;
@@ -1178,8 +1189,8 @@ window.Radzen = {
                 Radzen.closeAllPopups();
             }
         }
-        if (parent) {
-          if (e.type == 'mousedown' && !parent.contains(e.target) && !currentPopup.contains(e.target)) {
+        if (currentPopup.parent) {
+          if (e.type == 'mousedown' && !currentPopup.parent.contains(e.target) && !currentPopup.contains(e.target)) {
               Radzen.closePopup(currentPopup.id, currentPopup.instance, currentPopup.callback, e);
           }
         } else {
@@ -1193,7 +1204,7 @@ window.Radzen = {
         Radzen.popups = [];
     }
 
-    Radzen.popups.push({ id, instance, callback });
+    Radzen.popups.push({ id, instance, callback, parent });
 
     document.body.appendChild(popup);
     document.removeEventListener('mousedown', Radzen[id]);
@@ -1392,6 +1403,7 @@ window.Radzen = {
         var lastDialog = dialogs[dialogs.length - 1];
 
         if (lastDialog) {
+            lastDialog.options = options;
             lastDialog.removeEventListener('keydown', Radzen.focusTrap);
             lastDialog.addEventListener('keydown', Radzen.focusTrap);
 
@@ -1523,15 +1535,20 @@ window.Radzen = {
               }
           }
 
-          Radzen.dialogService.invokeMethodAsync('DialogService.Close', null);
-
           var dialogs = document.querySelectorAll('.rz-dialog-content');
-          if (dialogs.length <= 1) {
-              document.removeEventListener('keydown', Radzen.closePopupOrDialog);
-              delete Radzen.dialogService;
-              var layout = document.querySelector('.rz-layout');
-              if (layout) {
-                  layout.removeEventListener('keydown', Radzen.disableKeydown);
+          if (dialogs.length == 0) return;
+          var lastDialog = dialogs[dialogs.length - 1];
+
+          if (lastDialog && lastDialog.options && lastDialog.options.closeDialogOnEsc) {
+              Radzen.dialogService.invokeMethodAsync('DialogService.Close', null);
+
+              if (dialogs.length <= 1) {
+                  document.removeEventListener('keydown', Radzen.closePopupOrDialog);
+                  delete Radzen.dialogService;
+                  var layout = document.querySelector('.rz-layout');
+                  if (layout) {
+                      layout.removeEventListener('keydown', Radzen.disableKeydown);
+                  }
               }
           }
       }
@@ -1835,8 +1852,22 @@ window.Radzen = {
     };
 
     ref.clickListener = function (e) {
-      if (e.target && e.target.matches('a,button')) {
-        e.preventDefault();
+      if (e.target) {
+        if (e.target.matches('a,button')) {
+          e.preventDefault();
+        }
+
+        for (var img of ref.querySelectorAll('img.rz-state-selected')) {
+          img.classList.remove('rz-state-selected');
+        }
+
+        if (e.target.matches('img')) {
+          e.target.classList.add('rz-state-selected');
+          var range = document.createRange();
+          range.selectNode(e.target);
+          getSelection().removeAllRanges();
+          getSelection().addRange(range);
+        }
       }
     }
 
@@ -1861,7 +1892,16 @@ window.Radzen = {
                     var status = xhr.status;
                     if (status === 0 || (status >= 200 && status < 400)) {
                         var result = JSON.parse(xhr.responseText);
-                        document.execCommand("insertHTML", false, '<img src="' + result.url + '">');
+                        var html = '<img src="' + result.url + '">';
+                        if (paste) {
+                            instance.invokeMethodAsync('OnPaste', html)
+                                .then(function (html) {
+                                    document.execCommand("insertHTML", false, html);
+                                });
+                        } else {
+                          document.execCommand("insertHTML", false, '<img src="' + result.url + '">');
+                        }
+                        instance.invokeMethodAsync('OnUploadComplete', xhr.responseText);
                     } else {
                         instance.invokeMethodAsync('OnError', xhr.responseText);
                     }
@@ -1877,7 +1917,16 @@ window.Radzen = {
         } else {
             var reader = new FileReader();
             reader.onload = function (e) {
-                document.execCommand("insertHTML", false, '<img src="' + e.target.result + '">');
+              var html = '<img src="' + e.target.result + '">';
+
+              if (paste) {
+                instance.invokeMethodAsync('OnPaste', html)
+                  .then(function (html) {
+                    document.execCommand("insertHTML", false, html);
+                  });
+              } else {
+                document.execCommand("insertHTML", false, html);
+              }
             };
             reader.readAsDataURL(file);
         }
@@ -1922,7 +1971,8 @@ window.Radzen = {
     var selection = getSelection();
     var range = selection.rangeCount > 0 && selection.getRangeAt(0);
     var parent = range && range.commonAncestorContainer;
-    var inside = false;
+    var img = container.querySelector('img.rz-state-selected');
+    var inside = img && selector == 'img';
     while (parent) {
       if (parent == container) {
         inside = true;
@@ -1935,7 +1985,10 @@ window.Radzen = {
     }
     var target = selection.focusNode;
     var innerHTML;
-    if (target) {
+
+    if (img && selector == 'img') {
+      target = img;
+    } else if (target) {
       if (target.nodeType == 3) {
         target = target.parentElement;
       } else {
@@ -1948,9 +2001,10 @@ window.Radzen = {
         target = target.closest(selector);
       }
     }
+
     return attributes.reduce(function (result, name) {
       if (target) {
-        result[name] = target[name].toString();
+        result[name] = name == 'innerText' ? target[name] : target.getAttribute(name);
       }
       return result;
     }, { innerText: selection.toString(), innerHTML: innerHTML });
