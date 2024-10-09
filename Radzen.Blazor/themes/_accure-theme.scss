@@ -4,18 +4,14 @@ $rz-primary: #29bdb5;
 $rz-secondary: #29bdb5;
 $rz-info: #29bdb5;
 
-:root {
-    --rz-panel-menu-color: var(--rz-text-color);
-    --rz-panel-menu-hover-color: var(--rz-panel-menu-color);
-    --rz-panel-menu-background-color: var(--rz-base-background-color);
-    --rz-panel-menu-hover-background-color: rgba(#{$rz-primary}, .3);
-}
-
 // PanelMenu
 
+$panel-menu-item-color: var(--rz-text-color);
+$panel-menu-item-hover-color: $panel-menu-item-color;
+$panel-menu-item-background-color: var(--rz-base-background-color);
+$panel-menu-item-hover-background-color: rgba($rz-primary, .3);
 $panel-menu-item-border: none;
-$panel-menu-item-active-color: var(--rz-panel-menu-color);
-$panel-menu-item-background-color: rgba($rz-primary, .1);
+$panel-menu-item-active-color: $panel-menu-item-color;
 $panel-menu-item-active-background-color: rgba($rz-primary, .3);
 
 $panel-menu-item-2nd-level-background-color: rgba($rz-primary, .2);
