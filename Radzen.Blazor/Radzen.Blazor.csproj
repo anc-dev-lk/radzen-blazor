@@ -161,6 +161,7 @@
     <SassFile Include="themes\standard-dark.scss" />
     <SassFile Include="themes\standard-wcag.scss" />
     <SassFile Include="themes\standard.scss" />
+    <SassFile Include="themes\_accure-partner-theme.scss" />
     <SassFile Include="themes\_accure-theme.scss" />
     <SassFile Include="themes\_components.scss" />
     <SassFile Include="themes\_css-variables.scss" />
