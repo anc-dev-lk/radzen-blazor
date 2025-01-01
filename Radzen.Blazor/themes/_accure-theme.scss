@@ -1,0 +1,42 @@
+//Theme color
+$rz-primary: #29bdb5;
+$rz-secondary: #29bdb5;
+$rz-info: #29bdb5;
+
+// PanelMenu
+$panel-menu-item-color: var(--rz-text-color);
+$panel-menu-item-hover-color: $panel-menu-item-color;
+$panel-menu-item-background-color: var(--rz-base-background-color);
+$panel-menu-item-hover-background-color: rgba($rz-primary, .3);
+$panel-menu-item-border: none;
+$panel-menu-item-active-color: $panel-menu-item-color;
+$panel-menu-item-active-background-color: rgba($rz-primary, .3);
+
+$panel-menu-item-2nd-level-background-color: rgba($rz-primary, .2);
+$panel-menu-item-2nd-level-hover-background-color: rgba($rz-primary, .4);
+$panel-menu-item-2nd-level-active-background-color: rgba($rz-primary, .4);
+
+$panel-menu-item-3rd-level-background-color: rgba($rz-primary, .4);
+$panel-menu-item-3rd-level-hover-background-color: rgba($rz-primary, .6);
+$panel-menu-item-3rd-level-active-background-color: rgba($rz-primary, .6);
+
+//Scrollbar
+$scrollbar-color: var(--rz-base-300);
+
+//Grid
+$grid-stripe-background-color: var(--rz-base-background-color);
+$grid-filter-background-color: var(--rz-base-background-color);
+$grid-filter-border: none;
+$grid-header-cell-border-bottom: var(--rz-border-normal);
+$grid-frozen-cell-background-color: var(--rz-base-background-color);
+$grid-frozen-cell-border: none;
+$grid-filter-buttons-background-color: var(--rz-base-background-color);
+
+//Header
+$header-z: 4;
+
+//DatePicker
+$datepicker-calendar-hover-background-color: rgba($rz-primary, .6);
+
+//Icons
+$rz-icon-weight: normal;
