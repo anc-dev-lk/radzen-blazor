@@ -14,7 +14,7 @@
     <RadzenRow>
       <RadzenColumn Size="12" class="rz-text-align-center">
         <RadzenText TextStyle="TextStyle.DisplayH1" TagName="TagName.H1" class="rz-my-8 rz-pt-8 rz-my-sm-10 rz-pt-sm-10 rz-my-md-12 rz-pt-md-12" Style="--rz-text-display-h1-font-weight: 500;">Radzen Blazor Components</RadzenText>
-        <RadzenText TextStyle="TextStyle.DisplayH5" TagName="TagName.H2" Style="--rz-text-display-h5-font-weight: normal; --rz-text-display-h5-line-height: 1.4;">A set of <span style="font-weight: 600">90+ free</span> powerful components for modern Blazor apps.<br /> Open source. Native. Growing.</RadzenText>
+        <RadzenText TextStyle="TextStyle.DisplayH5" TagName="TagName.H2" Style="--rz-text-display-h5-font-weight: normal; --rz-text-display-h5-line-height: 1.4;">The most sophisticated free UI component library for Blazor, featuring <span style="font-weight: 600">100+</span> native components.<br /> Open source. Native. Growing.</RadzenText>
 
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" Wrap="FlexWrap.Wrap" class="rz-mt-8">
           <RadzenLink Path="https://github.com/radzenhq/radzen-blazor/blob/master/LICENSE">
@@ -78,16 +78,8 @@
       </RadzenColumn>
     </RadzenRow>
 
-      <RadzenRow ID="components" Gap="1rem" class="rz-w-100 rz-mx-auto" Style="max-width: 1440px;">
+    <RadzenRow ID="components" Gap="1rem" class="rz-w-100 rz-mx-auto rz-mt-12 rz-pt-12" Style="max-width: 1440px;">
       <RadzenColumn Size="12">
-            <RadzenAlert AlertStyle="AlertStyle.Dark" Icon="mode_heat" Size="AlertSize.Large" Variant="Variant.Flat" class="rz-my-lg-12 promo-alert">
-              <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H2" class="rz-mb-3 rz-color-on-base-darker"><strong>NEW: Radzen Blazor for Visual Studio</strong></RadzenText>
-              <RadzenText TextStyle="TextStyle.Body1" class="rz-color-on-base-darker">The extension brings Radzen’s rich feature set and productivity tools directly into the familiar Visual Studio 2022 environment. Connect to data, design, code seamlessly, and work faster within Visual Studio. <RadzenLink Path="https://www.radzen.com/blazor-visual-studio" target="_blank" Style="color: #FFB9FF !important;">Learn More ↗</RadzenLink></RadzenText>
-              <RadzenStack Orientation="Orientation.Horizontal" Gap="2rem" AlignItems="AlignItems.Center" class="rz-mt-6">
-                <RadzenButton Text="See in Action" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Flat" Size="ButtonSize.Medium" Click=@(args => ShowVideoDialog("https://www.youtube.com/embed/VUwy-BX3eCM?&rel=0")) />
-              </RadzenStack>
-            </RadzenAlert>
-
             <RadzenToc Orientation="Orientation.Horizontal" Selector=".radzen-blazor" Style="position: sticky; top: 2rem; z-index: 1;" class="rz-display-none rz-display-md-flex">
                 <RadzenTocItem Text="UI Components" Selector="#get-started"></RadzenTocItem>
                 <RadzenTocItem Selector="#blocks">
@@ -137,6 +129,7 @@
               <RadzenColumn Size="12" SizeMD="9" SizeLG="10" SizeXL="9" class="rz-ps-6 rz-ps-md-0 components-list">
                 <RadzenRow RowGap="1.5rem">
                   <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/datagrid"><RadzenIcon aria-hidden="true" Icon="@("\uf191")" /><span>DataGrid</span><RadzenBadge BadgeStyle="BadgeStyle.Info" Title="Updated"><RadzenIcon aria-hidden="true" Icon="@("\ue863")" /><span>Updated</span></RadzenBadge></RadzenLink></RadzenColumn>
+                  <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/pivot-data-grid"><RadzenIcon aria-hidden="true" Icon="@("\ue9ce")" /><span>PivotDataGrid</span><RadzenBadge BadgeStyle="BadgeStyle.Success" Title="New"><RadzenIcon aria-hidden="true" Icon="@("\ue061")" /><span>New</span></RadzenBadge></RadzenLink></RadzenColumn>
                   <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/datalist"><RadzenIcon aria-hidden="true" Icon="@("\ue896")" /><span>DataList</span></RadzenLink></RadzenColumn>
                   <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/datafilter"><RadzenIcon aria-hidden="true" Icon="@("\uef4f")" /><span>DataFilter</span></RadzenLink></RadzenColumn>
                   <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/markdown"><RadzenIcon aria-hidden="true" Icon="@("\uf552")" /><span>Markdown</span><RadzenBadge BadgeStyle="BadgeStyle.Success" Title="New"><RadzenIcon aria-hidden="true" Icon="@("\ue061")" /><span>New</span></RadzenBadge></RadzenLink></RadzenColumn>
@@ -192,7 +185,7 @@
               </RadzenColumn>
               <RadzenColumn Size="12" SizeMD="9" SizeLG="10" SizeXL="9" class="rz-ps-6 rz-ps-md-0 components-list">
                 <RadzenRow>
-                  <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/layout"><RadzenIcon aria-hidden="true" Icon="@("\ue8f1")" /><span>Layout</span></RadzenLink></RadzenColumn>
+                  <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/layout"><RadzenIcon aria-hidden="true" Icon="@("\ue8f1")" /><span>Layout</span><RadzenBadge BadgeStyle="BadgeStyle.Info" Title="Updated"><RadzenIcon aria-hidden="true" Icon="@("\ue863")" /><span>Updated</span></RadzenBadge></RadzenLink></RadzenColumn>
                   <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/stack"><RadzenIcon aria-hidden="true" Icon="@("\ue8e9")" /><span>Stack</span></RadzenLink></RadzenColumn>
                   <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/row"><RadzenIcon aria-hidden="true" Icon="@("\uf676")" /><span>Row</span></RadzenLink></RadzenColumn>
                   <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/column"><RadzenIcon aria-hidden="true" Icon="@("\uf674")" /><span>Column</span></RadzenLink></RadzenColumn>
@@ -236,6 +229,7 @@
               <RadzenColumn Size="12" SizeMD="9" SizeLG="10" SizeXL="9" class="rz-ps-6 rz-ps-md-0 components-list">
                 <RadzenRow>
                   <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/aichat"><RadzenIcon aria-hidden="true" Icon="@("\ue0b7")" /><span>AIChat</span><RadzenBadge BadgeStyle="BadgeStyle.Success" Title="New"><RadzenIcon aria-hidden="true" Icon="@("\ue061")" /><span>New</span></RadzenBadge></RadzenLink></RadzenColumn>
+                  <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/chat"><RadzenIcon aria-hidden="true" Icon="@("\uefd1")" /><span>Chat</span><RadzenBadge BadgeStyle="BadgeStyle.Success" Title="New"><RadzenIcon aria-hidden="true" Icon="@("\ue061")" /><span>New</span></RadzenBadge></RadzenLink></RadzenColumn>
                   <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/autocomplete"><RadzenIcon aria-hidden="true" Icon="@("\ue03b")" /><span>AutoComplete</span></RadzenLink></RadzenColumn>
                   <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/button"><RadzenIcon aria-hidden="true" Icon="@("\ue72f")" /><span>Button</span></RadzenLink></RadzenColumn>
                   <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/toggle-button"><RadzenIcon aria-hidden="true" Icon="@("\ue8e0")" /><span>ToggleButton</span></RadzenLink></RadzenColumn>
@@ -245,6 +239,8 @@
                   <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/datepicker"><RadzenIcon aria-hidden="true" Icon="@("\ue916")" /><span>DatePicker</span><RadzenBadge BadgeStyle="BadgeStyle.Info" Title="Updated"><RadzenIcon aria-hidden="true" Icon="@("\ue863")" /><span>Updated</span></RadzenBadge></RadzenLink></RadzenColumn>
                   <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/dropdown"><RadzenIcon aria-hidden="true" Icon="@("\ue172")" /><span>DropDown</span></RadzenLink></RadzenColumn>
                   <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/dropdown-datagrid"><RadzenIcon aria-hidden="true" Icon="@("\ue99c")" /><span>DropDownDataGrid</span></RadzenLink></RadzenColumn>
+                  <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/fab"><RadzenIcon aria-hidden="true" Icon="@("\ue147")" /><span>Fab</span><RadzenBadge BadgeStyle="BadgeStyle.Success" Title="New"><RadzenIcon aria-hidden="true" Icon="@("\ue061")" /><span>New</span></RadzenBadge></RadzenLink></RadzenColumn>
+                  <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/fab-menu"><RadzenIcon aria-hidden="true" Icon="@("\ue091")" /><span>FabMenu</span><RadzenBadge BadgeStyle="BadgeStyle.Success" Title="New"><RadzenIcon aria-hidden="true" Icon="@("\ue061")" /><span>New</span></RadzenBadge></RadzenLink></RadzenColumn>
                   <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/fieldset"><RadzenIcon aria-hidden="true" Icon="@("\ue728")" /><span>Fieldset</span></RadzenLink></RadzenColumn>
                   <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/fileinput"><RadzenIcon aria-hidden="true" Icon="@("\ue226")" /><span>FileInput</span></RadzenLink></RadzenColumn>
                   <RadzenColumn Size="12" SizeXS="6" SizeSM="4" SizeLG="3"><RadzenLink Path="/form-field"><RadzenIcon aria-hidden="true" Icon="@("\ue578")" /><span>FormField</span></RadzenLink></RadzenColumn>

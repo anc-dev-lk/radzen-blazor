@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +21,67 @@ using System.Threading.Tasks;
 
 namespace Radzen
 {
+    /// <summary>
+    /// RadzenPivotAggreateContext.
+    /// </summary>
+    public class RadzenPivotAggreateContext<T>
+    {
+        /// <summary>
+        /// Gets the query.
+        /// </summary>
+        public IQueryable<T> View { get; internal set; }
+
+        /// <summary>
+        /// Gets the aggregate.
+        /// </summary>
+        public RadzenPivotAggregate<T> Aggregate { get; internal set; }
+
+        /// <summary>
+        /// Gets the aggregate value.
+        /// </summary>
+        public object Value { get; internal set; }
+
+        /// <summary>
+        /// Gets the row index.
+        /// </summary>
+        public int? Index { get; internal set; }
+    }
+
+    /// <summary>
+    /// Specifies the aggregate function for pivot values.
+    /// </summary>
+    public enum AggregateFunction
+    {
+        /// <summary>
+        /// Sum of values.
+        /// </summary>
+        Sum,
+        /// <summary>
+        /// Count of items.
+        /// </summary>
+        Count,
+        /// <summary>
+        /// Average of values.
+        /// </summary>
+        Average,
+        /// <summary>
+        /// Minimum value.
+        /// </summary>
+        Min,
+        /// <summary>
+        /// Maximum value.
+        /// </summary>
+        Max,
+        /// <summary>
+        /// First value.
+        /// </summary>
+        First,
+        /// <summary>
+        /// Last value.
+        /// </summary>
+        Last
+    }
+
     /// <summary>
     /// Colors.
     /// </summary>
@@ -1353,6 +1414,37 @@ namespace Radzen
     }
 
     /// <summary>
+    /// Specifies the direction in which a RadzenFabMenu expands its items.
+    /// </summary>
+    public enum FabMenuDirection
+    {
+        /// <summary>
+        /// The menu items expand upward from the FAB button.
+        /// </summary>
+        Top,
+        /// <summary>
+        /// The menu items expand downward from the FAB button.
+        /// </summary>
+        Bottom,
+        /// <summary>
+        /// The menu items expand to the left of the FAB button.
+        /// </summary>
+        Left,
+        /// <summary>
+        /// The menu items expand to the right of the FAB button.
+        /// </summary>
+        Right,
+        /// <summary>
+        /// The menu items expand to the start of the FAB button.
+        /// </summary>
+        Start,
+        /// <summary>
+        /// The menu items expand to the end of the FAB button.
+        /// </summary>
+        End
+    }
+
+    /// <summary>
     /// Specifies the position at which a Radzen Blazor component renders its built-in <see cref="RadzenPager" />.
     /// </summary>
     [Flags]
@@ -1370,6 +1462,29 @@ namespace Radzen
         /// RadzenPager is displayed at the top and at the bottom of the component.
         /// </summary>
         TopAndBottom = Top | Bottom
+    }
+
+    /// <summary>
+    /// Specifies the ways a <see cref="RadzenSidebar" /> component renders inside RadzenLayout.
+    /// </summary>
+    public enum SidebarPosition
+    {
+        /// <summary>
+        /// The RadzenSidebar component is displayed at the start of RadzenLayout.
+        /// </summary>
+        Left,
+        /// <summary>
+        /// The RadzenSidebar component is displayed at the end of RadzenLayout.
+        /// </summary>
+        Right,
+        /// <summary>
+        /// The RadzenSidebar component is displayed at the start of RadzenLayout.
+        /// </summary>
+        Start,
+        /// <summary>
+        /// The RadzenSidebar component is displayed at the end of RadzenLayout.
+        /// </summary>
+        End
     }
 
     /// <summary>

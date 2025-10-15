@@ -284,8 +284,8 @@ namespace Radzen.Blazor
             YearFrom = min.HasValue ? min.Value.Year : int.Parse(YearRange.Split(':').First());
             YearTo = max.HasValue ? max.Value.Year : int.Parse(YearRange.Split(':').Last());
             months = Enumerable.Range(1, 12).Select(i => new NameValue() { Name = Culture.DateTimeFormat.GetMonthName(i), Value = i }).ToList();
-            years = Enumerable.Range(YearFrom, YearTo - YearFrom + 1)
-                .Select(i => new NameValue() { Name = YearFormatter(i), Value = i }).ToList();
+            years = YearFrom <= YearTo ? Enumerable.Range(YearFrom, YearTo - YearFrom + 1)
+                .Select(i => new NameValue() { Name = YearFormatter(i), Value = i }).ToList() : Enumerable.Empty<NameValue>().ToList();
         }
 
         private string FormatYear(int year)
@@ -1093,6 +1093,12 @@ namespace Radzen.Blazor
         /// <inheritdoc />
         public override async Task SetParametersAsync(ParameterView parameters)
         {
+            if (parameters.DidParameterChange(nameof(InitialViewDate), InitialViewDate) &&
+                (DateTimeValue == default(DateTime) || DateTimeValue == null))
+            {
+                _currentDate = default(DateTime);
+            }
+
             if (parameters.DidParameterChange(nameof(Min), Min) || parameters.DidParameterChange(nameof(Max), Max))
             {
                 var min = parameters.GetValueOrDefault<DateTime?>(nameof(Min));
