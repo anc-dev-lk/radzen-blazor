@@ -8,6 +8,10 @@
     Demonstration and configuration of the Radzen Blazor <strong>Icon</strong> component.
 </RadzenText>
 
+<RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.P" class="rz-pb-4">
+    These demos showcase icon rendering using the embedded Material Symbols Outlined font (2,500+ glyphs), custom icon colors with <code>IconColor</code> property, filled icon variants using CSS font-variation-settings, styled icons with theme-defined <code>IconStyle</code>, and integration with other icon fonts like Material Symbols Rounded and FontAwesome by setting the <code>--rz-icon-font-family</code> CSS variable.
+</RadzenText>
+
 <RadzenText Anchor="icon#material-icons" TextStyle="TextStyle.H5" TagName="TagName.H2" class="rz-pt-8">
     Material Icons
 </RadzenText>
@@ -69,6 +73,16 @@
 <RadzenText TextStyle="TextStyle.Body1" class="rz-mt-8">
     Read more about <RadzenLink Path="https://fonts.google.com/knowledge/glossary/variable_fonts" Text="variable fonts" target="_blank" />.
 </RadzenText>
+
+<RadzenText TextStyle="TextStyle.H6" TagName="TagName.H3" class="rz-pt-8 rz-mb-8">
+    RadzenIcon with Material Symbols font loaded from Google Fonts.
+</RadzenText>
+<RadzenText TextStyle="TextStyle.Body1" class="rz-mb-8">
+    For full control over the icon font content and styles, you can load the Material Symbols font from Google Fonts and set the <code>--rz-icon-font-family</code> CSS variable accordingly.
+</RadzenText>
+<RadzenExample ComponentName="Icon" Example="GoogleFontsMaterialSymbols">
+    <GoogleFontsMaterialSymbols />
+</RadzenExample>
 
 <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H3" class="rz-pt-8 rz-mb-8">
     RadzenIcon with FontAwesome font

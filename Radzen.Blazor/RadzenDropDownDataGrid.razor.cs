@@ -10,12 +10,36 @@ using System.Threading.Tasks;
 namespace Radzen.Blazor
 {
     /// <summary>
-    /// RadzenDropDownDataGrid component.
+    /// A dropdown component that displays items in a DataGrid within the popup instead of a simple list.
+    /// RadzenDropDownDataGrid combines dropdown selection with grid features like multiple columns, sorting, filtering, and paging.
+    /// Ideal when dropdown items have multiple properties you want to display in columns. Instead of showing just one property per item, the grid popup can display multiple columns.
+    /// Perfect for scenarios like selecting products with columns for Name/SKU/Price/Stock, choosing employees with Name/Department/Email columns, or picking customers with Company/Contact/Location columns.
+    /// Features full DataGrid with columns/sorting/filtering in the dropdown popup, column definition using RadzenDropDownDataGridColumn, built-in column filtering in the grid,
+    /// multiple selection with checkboxes, optional paging for large datasets, and custom column templates for rich item display.
+    /// Define columns as child components to specify what data to show in the grid popup.
     /// </summary>
-    /// <typeparam name="TValue">The type of the t value.</typeparam>
+    /// <typeparam name="TValue">The type of the selected value. Can be a single value or IEnumerable for multiple selection.</typeparam>
     /// <example>
+    /// Basic dropdown with grid:
     /// <code>
-    /// &lt;RadzenDropDownDataGrid @bind-Value=@customerID TValue="string" Data=@customers TextProperty="CompanyName" ValueProperty="CustomerID" Change=@(args => Console.WriteLine($"Selected CustomerID: {args}")) /&gt;
+    /// &lt;RadzenDropDownDataGrid @bind-Value=@selectedCustomerId TValue="int" 
+    ///                          Data=@customers ValueProperty="CustomerId"&gt;
+    ///     &lt;Columns&gt;
+    ///         &lt;RadzenDropDownDataGridColumn Property="CompanyName" Title="Company" /&gt;
+    ///         &lt;RadzenDropDownDataGridColumn Property="ContactName" Title="Contact" /&gt;
+    ///         &lt;RadzenDropDownDataGridColumn Property="City" Title="City" /&gt;
+    ///     &lt;/Columns&gt;
+    /// &lt;/RadzenDropDownDataGrid&gt;
+    /// </code>
+    /// Multiple selection with filtering:
+    /// <code>
+    /// &lt;RadzenDropDownDataGrid @bind-Value=@selectedIds TValue="IEnumerable&lt;int&gt;" 
+    ///                          Multiple="true" AllowFiltering="true" Data=@products&gt;
+    ///     &lt;Columns&gt;
+    ///         &lt;RadzenDropDownDataGridColumn Property="Name" Title="Product" /&gt;
+    ///         &lt;RadzenDropDownDataGridColumn Property="Price" Title="Price" FormatString="{0:C}" /&gt;
+    ///     &lt;/Columns&gt;
+    /// &lt;/RadzenDropDownDataGrid&gt;
     /// </code>
     /// </example>
     public partial class RadzenDropDownDataGrid<TValue> : DropDownBase<TValue>
@@ -40,6 +64,13 @@ namespace Radzen.Blazor
         /// <value>The cell render callback.</value>
         [Parameter]
         public Action<DataGridCellRenderEventArgs<object>> CellRender { get; set; }
+
+        /// <summary>
+        /// Gets or sets the load child data callback.
+        /// </summary>
+        /// <value>The load child data callback.</value>
+        [Parameter]
+        public EventCallback<Radzen.DataGridLoadChildDataEventArgs<object>> LoadChildData { get; set; }
 
         /// <summary>
         /// Gets or sets the footer template.
@@ -104,11 +135,19 @@ namespace Radzen.Blazor
         [Parameter]
         public bool OpenOnFocus { get; set; }
 
+        /// <summary>
+        /// Gets or sets the keyboard key that triggers opening the popup when <see cref="OpenOnFocus"/> is enabled.
+        /// Default is <c>"Enter"</c>.
+        /// </summary>
+        /// <value>The keyboard key used to open the popup.</value>
+        [Parameter]
+        public string OpenPopupKey { get; set; } = "Enter";
+
         private async Task OnFocus()
         {
             if (OpenOnFocus)
             {
-                await OpenPopup("Enter", false);
+                await OpenPopup(OpenPopupKey, false);
             }
         }
 
@@ -183,6 +222,20 @@ namespace Radzen.Blazor
         public bool AllowColumnResize { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether column reorder is allowed.
+        /// </summary>
+        /// <value><c>true</c> if column reorder is allowed; otherwise, <c>false</c>.</value>
+        [Parameter]
+        public bool AllowColumnReorder { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether column picking is allowed.
+        /// </summary>
+        /// <value><c>true</c> if column picking is allowed; otherwise, <c>false</c>.</value>
+        [Parameter]
+        public bool AllowColumnPicking { get; set; }
+
+        /// <summary>
         /// Gets or sets the width of all columns.
         /// </summary>
         /// <value>The width of all columns.</value>
@@ -221,6 +274,12 @@ namespace Radzen.Blazor
         /// <value>Row selection preservation on pageing.</value>
         [Parameter]
         public bool PreserveRowSelectionOnPaging { get; set; } = false;
+
+        /// <summary>
+        /// Gets or sets the page size options.</summary>
+        /// <value>The page size options.</value>
+        [Parameter]
+        public IEnumerable<int> PageSizeOptions { get; set; }
 
         /// <summary>
         /// Gets or sets the page numbers count.
@@ -543,7 +602,7 @@ namespace Radzen.Blazor
 
                 pagedData = await Task.FromResult(query.Cast<object>().Skip(skip.HasValue ? skip.Value : 0).Take(args.Top.HasValue ? args.Top.Value : PageSize).ToList());
 
-                _internalView = query;
+                internalView = query;
 
                 if (prevOrder != args.OrderBy)
                 {
@@ -568,7 +627,7 @@ namespace Radzen.Blazor
 
         }
 
-        IEnumerable _internalView = Enumerable.Empty<object>();
+        private IEnumerable internalView = Enumerable.Empty<object>();
 
         /// <summary>
         /// Gets the view. The data with sorting, filtering and paging applied.
@@ -578,7 +637,7 @@ namespace Radzen.Blazor
         {
             get
             {
-                return _internalView;
+                return internalView;
             }
         }
 

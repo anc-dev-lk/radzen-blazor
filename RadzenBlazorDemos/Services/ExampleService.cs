@@ -74,6 +74,7 @@ namespace RadzenBlazorDemos
                 },
                 new Example
                 {
+                    Toc = [ new () { Text = "Persist the Theme", Anchor = "#persist" }, new () { Text = "Changing themes at runtime in Radzen Blazor Studio", Anchor = "#video-changing-themes-at-runtime" } ],
                     Name = "ThemeService",
                     Path = "theme-service",
                     Title = "ThemeService",
@@ -83,7 +84,7 @@ namespace RadzenBlazorDemos
                 },
                 new Example
                 {
-                    Toc = [ new () { Text = "Switch between light and dark mode", Anchor = "#light-dark-mode" }, new () { Text = "Keyboard Navigation", Anchor = "#keyboard-navigation" } ],
+                    Toc = [ new () { Text = "Switch between light and dark mode", Anchor = "#light-dark-mode" }, new () { Text = "RadzenAppearanceToggle in Radzen Blazor Studio", Anchor = "#video-radzen-blazor-studio-config" }, new () { Text = "Keyboard Navigation", Anchor = "#keyboard-navigation" } ],
                     Name = "AppearanceToggle",
                     Path = "appearance-toggle",
                     Title = "Blazor Themes | Free UI Components by Radzen",
@@ -93,7 +94,7 @@ namespace RadzenBlazorDemos
                 },
                 new Example
                 {
-                    Toc = [ new () { Text = "Theme Colors", Anchor = "#theme-colors" }, new () { Text = "Utility CSS Classes", Anchor = "#utility-css-classes" } ],
+                    Toc = [ new () { Text = "Theme Colors", Anchor = "#theme-colors" }, new () { Text = "Utility CSS Classes", Anchor = "#utility-css-classes" }, new () { Text = "Theme Colors in Radzen Blazor Studio", Anchor = "#video-theme-colors" } ],
                     Name = "Colors",
                     Path = "colors",
                     Title = "Blazor Color Utilities | Free UI Components by Radzen",
@@ -161,6 +162,16 @@ namespace RadzenBlazorDemos
                     Path = "overflow",
                     Icon = "\uf829",
                     Tags = new [] { "overflow", "content", "width", "height", "size", "wrap", "hide", "hidden", "visible", "utility", "css", "var"}
+                },
+                new Example
+                {
+                    Toc = [ new () { Text = "Basic Usage", Anchor = "#basic-usage" }, new () { Text = "Show/Hide Content Based on Screen Size", Anchor = "#responsive-content" }, new () { Text = "Multiple Breakpoints", Anchor = "#multiple-breakpoints" }, new () { Text = "Device Orientation", Anchor = "#orientation" } ],
+                    Name = "MediaQuery",
+                    Title = "Blazor MediaQuery Component | Free UI Components by Radzen",
+                    Description = "Respond to browser viewport size changes using CSS media queries. Perfect for creating responsive Blazor applications.",
+                    Path = "media-query",
+                    Icon = "\ue337",
+                    Tags = new [] { "mediaquery", "media", "query", "responsive", "breakpoint", "viewport", "screen", "mobile", "tablet", "desktop", "orientation", "utility"}
                 },
                 new Example
                 {
@@ -1027,6 +1038,14 @@ namespace RadzenBlazorDemos
                 },
                 new Example
                 {
+                    Name = "Dynamic data",
+                    Path = "/pivot-data-grid-dynamic",
+                    Title = "Blazor Pivot DataGrid Component - dynamic data sets | Free UI Components by Radzen",
+                    Description = "Bind RadzenPivotDataGrid to schema-less IDictionary<string, object> records and configure fields dynamically.",
+                    Tags = new [] { "pivot", "dynamic", "dictionary", "analysis", "aggregation", "drill-down", "datagrid", "table" }
+                },
+                new Example
+                {
                     Name = "OData",
                     Path = "/pivot-data-grid-odata",
                     Title = "Blazor Pivot DataGrid custom data-binding to OData service.",
@@ -1320,7 +1339,6 @@ namespace RadzenBlazorDemos
                 },
                 new Example
                 {
-                    Toc = [ new () { Text = "Templates", Anchor = "#templates" }, new () { Text = "Expand/Collapse", Anchor = "#expand-collapse" } ],
                     Name = "Panel",
                     Description = "Demonstration and configuration of the Blazor RadzenPanel component.",
                     Path = "panel",
@@ -1481,6 +1499,16 @@ namespace RadzenBlazorDemos
                     Description = "A modern chat component for multi-participant conversations with support for distinct user identities and real-time messaging.",
                     Icon = "\uefd1",
                     Tags = new [] { "chat", "conversation", "message", "users", "team", "group" }
+                },
+                new Example
+                {
+                    Toc = [ new () { Text = "Basic Label with Input", Anchor = "#basic-usage" }, new () { Text = "Labels with Different Input Types", Anchor = "#input-types" }, new () { Text = "Label with Custom Content", Anchor = "#custom-content" }, new () { Text = "Required Field Indicators", Anchor = "#required-fields" }, new () { Text = "Label Styling", Anchor = "#styling" } ],
+                    Name = "Label",
+                    Title = "Blazor Label Component | Free UI Components by Radzen",
+                    Description = "Associate descriptive text labels with form inputs for better accessibility and usability. Clicking a label focuses its associated input.",
+                    Path = "label",
+                    Icon = "\ue893",
+                    Tags = new [] { "label", "form", "input", "accessibility", "required", "validation", "formfield", "association", "aria" }
                 },
                 new Example
                 {
@@ -2031,6 +2059,16 @@ namespace RadzenBlazorDemos
                     Description = "This example demonstrates multiple pointers with RadzenRadialGauge and multiple scales with RadzenArcGauge component.",
                     Icon = "\ue41d",
                     Tags = new [] { "gauge", "graph", "styling" }
+                },
+                new Example
+                {
+                    Toc = [ new () { Text = "Basic", Anchor = "#basic" }, new () { Text = "Large", Anchor = "#large" }, new () { Text = "Styled", Anchor = "#styled" } ],
+                    Name = "QRCode",
+                    Description = "Generate and display QR codes as SVG using RadzenQRCode.",
+                    Path = "qrcode",
+                    Icon = "\uef6b",
+                    Tags = new [] { "qr", "qrcode", "barcode", "svg" },
+                    New = true
                 },
                 new Example
                 {

@@ -1,5 +1,4 @@
-# syntax=docker/dockerfile:1
-FROM mcr.microsoft.com/dotnet/sdk:9.0
+FROM mcr.microsoft.com/dotnet/sdk:10.0
 
 COPY Radzen.Blazor /app/Radzen.Blazor
 COPY Radzen.DocFX /app/Radzen.DocFX

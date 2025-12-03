@@ -13,8 +13,8 @@ namespace Radzen.Blazor
     /// </summary>
     public partial class RadzenSplitterPane : RadzenComponent
     {
-        RadzenSplitter _splitter;
-        private string _size;
+        private RadzenSplitter splitter;
+        private string size;
 
         internal string SizeRuntine { get; set; }
 
@@ -150,8 +150,8 @@ namespace Radzen.Blazor
         [Parameter]
         public string Size
         {
-            get => SizeRuntine ?? _size;
-            set => _size = value;
+            get => SizeRuntine ?? size;
+            set => size = value;
         }
 
         /// <summary>
@@ -168,13 +168,13 @@ namespace Radzen.Blazor
         [CascadingParameter]
         public RadzenSplitter Splitter
         {
-            get => _splitter;
+            get => splitter;
             set
             {
-                if (_splitter != value)
+                if (splitter != value)
                 {
-                    _splitter = value;
-                    _splitter.AddPane(this);
+                    splitter = value;
+                    splitter.AddPane(this);
                 }
             }
         }
@@ -281,6 +281,29 @@ namespace Radzen.Blazor
             else
             {
                 preventKeyPress = false;
+            }
+        }
+
+        async Task OnDoubleClick(MouseEventArgs args)
+        {
+            // Only handle double-click if the pane or its next pane is collapsible
+            if (!IsCollapsible && !IsExpandable)
+                return;
+
+            // If the current pane is collapsed, expand it
+            if (GetCollapsed())
+            {
+                await Splitter.OnExpand(Index);
+            }
+            // If the current pane can be collapsed, collapse it
+            else if (IsCollapsible)
+            {
+                await Splitter.OnCollapse(Index);
+            }
+            // If the next pane is the last and is expandable, expand it
+            else if (IsExpandable)
+            {
+                await Splitter.OnExpand(Index);
             }
         }
     }

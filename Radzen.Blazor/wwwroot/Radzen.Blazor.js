@@ -21,6 +21,7 @@ var rejectCallbacks = [];
 var radzenRecognition;
 
 window.Radzen = {
+    selectedNavigationSelector: undefined,
     isRTL: function (el) {
         return el && getComputedStyle(el).direction == 'rtl';
     },
@@ -340,13 +341,15 @@ window.Radzen = {
 
     var inputs = el.getElementsByTagName('input');
 
-    if (Radzen[id].keyPress && Radzen[id].paste) {
+    if (Radzen[id].keyPress && Radzen[id].keyDown && Radzen[id].paste) {
+        var isAndroid = navigator.userAgent.match(/Android/i);
         for (var i = 0; i < inputs.length; i++) {
-            inputs[i].removeEventListener('keypress', Radzen[id].keyPress);
+            inputs[i].removeEventListener(isAndroid ? 'textInput' : 'keypress', Radzen[id].keyPress);
             inputs[i].removeEventListener('keydown', Radzen[id].keyDown);
             inputs[i].removeEventListener('paste', Radzen[id].paste);
         }
         delete Radzen[id].keyPress;
+        delete Radzen[id].keyDown;
         delete Radzen[id].paste;
     }
 
@@ -360,6 +363,8 @@ window.Radzen = {
       Radzen[id] = {};
 
       Radzen[id].inputs = [...el.querySelectorAll('.rz-security-code-input')];
+
+      var isAndroid = navigator.userAgent.match(/Android/i);
 
       Radzen[id].paste = function (e) {
           if (e.clipboardData) {
@@ -402,6 +407,11 @@ window.Radzen = {
               return;
           }
 
+          // Android-specific: prevent default to avoid double input
+          if (isAndroid && e.type === 'textInput') {
+              e.preventDefault();
+          }
+
           if (e.currentTarget.value == ch) {
               return;
           }
@@ -420,7 +430,7 @@ window.Radzen = {
       }
 
       Radzen[id].keyDown = function (e) {
-          var keyCode = e.data ? e.data.charCodeAt(0) : e.which;
+          var keyCode = e.which || e.keyCode;
           if (keyCode == 8) {
               e.currentTarget.value = '';
 
@@ -437,8 +447,8 @@ window.Radzen = {
       }
 
       for (var i = 0; i < Radzen[id].inputs.length; i++) {
-          Radzen[id].inputs[i].addEventListener(navigator.userAgent.match(/Android/i) ? 'textInput' : 'keypress', Radzen[id].keyPress);
-          Radzen[id].inputs[i].addEventListener(navigator.userAgent.match(/Android/i) ? 'textInput' : 'keydown', Radzen[id].keyDown);
+          Radzen[id].inputs[i].addEventListener(isAndroid ? 'textInput' : 'keypress', Radzen[id].keyPress);
+          Radzen[id].inputs[i].addEventListener('keydown', Radzen[id].keyDown);
           Radzen[id].inputs[i].addEventListener('paste', Radzen[id].paste);
       }
   },
@@ -829,8 +839,8 @@ window.Radzen = {
       }
     }
   },
-  removeFileFromUpload: function (fileInput, name) {
-    var uploadComponent = Radzen.uploadComponents && Radzen.uploadComponents[fileInput.id];
+  removeFileFromUpload: function (name, id) {
+    var uploadComponent = Radzen.uploadComponents && Radzen.uploadComponents[id];
     if (!uploadComponent) return;
     var file = uploadComponent.files.find(function (f) { return f.name == name; })
     if (!file) { return; }
@@ -842,7 +852,10 @@ window.Radzen = {
     if (index != -1) {
         uploadComponent.files.splice(index, 1);
     }
-    fileInput.value = '';
+    var fileInput = document.getElementById(id);
+    if (fileInput && uploadComponent.files.length == 0) {
+        fileInput.value = '';
+    }
   },
   removeFileFromFileInput: function (fileInput) {
     fileInput.value = '';
@@ -1351,7 +1364,10 @@ window.Radzen = {
     if (Radzen.activeElement && Radzen.activeElement == document.activeElement ||
         Radzen.activeElement && document.activeElement == document.body ||
         Radzen.activeElement && document.activeElement &&
-            (document.activeElement.classList.contains('rz-dropdown-filter') || document.activeElement.classList.contains('rz-lookup-search-input'))) {
+            (document.activeElement.classList.contains('rz-dropdown-filter') || 
+             document.activeElement.classList.contains('rz-lookup-search-input') ||
+             document.activeElement.classList.contains('rz-multiselect-filter-container') ||
+             document.activeElement.closest('.rz-multiselect-filter-container') !== null)) {
         setTimeout(function () {
             if (e && e.target && e.target.tabIndex != -1) {
                 Radzen.activeElement = e.target;
@@ -1408,23 +1424,20 @@ window.Radzen = {
   },
   focusFirstFocusableElement: function (el) {
       var focusable = Radzen.getFocusableElements(el);
-      var editor = el.querySelector('.rz-html-editor');
+      if (!focusable || !focusable.length) return;
 
-      if (editor && !focusable.includes(editor.previousElementSibling)) {
-          var editable = el.querySelector('.rz-html-editor-content');
-          if (editable) {
-              var selection = window.getSelection();
-              var range = document.createRange();
-              range.setStart(editable, 0);
-              range.setEnd(editable, 0);
-              selection.removeAllRanges();
-              selection.addRange(range);
-          }
+      var first = focusable[0];
+      
+      if (first.classList.contains('rz-html-editor-content')) {
+          var sel = window.getSelection();
+          var range = document.createRange();
+          range.setStart(first, 0);
+          range.setEnd(first, 0);
+          sel.removeAllRanges();
+          sel.addRange(range);
+          first.focus();
       } else {
-          var firstFocusable = focusable[0];
-          if (firstFocusable) {
-              firstFocusable.focus();
-          }
+          first.focus();
       }
   },
   openSideDialog: function (options) {
@@ -1436,6 +1449,77 @@ window.Radzen = {
               Radzen.focusFirstFocusableElement(lastDialog);
           }
       }, 500);
+  },
+  createSideDialogResizer: function(handle, sideDialog, options) {
+      const normalizeDir = (value) => {
+          if (typeof value === 'string' && value.length) {
+              return value.toLowerCase();
+          }
+          if (typeof value === 'number') {
+              const positions = ['right', 'left', 'top', 'bottom'];
+              return positions[value] || 'right';
+          }
+          return 'right';
+      };
+
+      const dir = normalizeDir(options?.position);
+
+      let start = null;
+
+      const onDown = (e) => {
+          e.preventDefault();
+
+          start = {x: e.clientX, y: e.clientY, w: sideDialog.clientWidth, h: sideDialog.clientHeight};
+
+          document.addEventListener('pointermove', onMove);
+          document.addEventListener('pointerup', onUp, {once: true});
+          document.addEventListener('pointercancel', onUp, {once: true});
+      };
+
+      const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+      const applyWidth = (w) => {
+          sideDialog.style.width = Math.round(w) + 'px';
+      };
+      const applyHeight = (h) => {
+          sideDialog.style.height = `${Math.round(h)}px`;
+      };
+
+      const onMove = (e) => {
+          if (!start) return;
+
+          const dx = e.clientX - start.x;
+          const dy = e.clientY - start.y;
+
+          switch (dir) {
+              case 'right':
+                  applyWidth(clamp(start.w - dx, options.minWidth, Infinity));
+                  break;
+              case 'left':
+                  applyWidth(clamp(start.w + dx, options.minWidth, Infinity));
+                  break;
+              case 'bottom':
+                  applyHeight(clamp(start.h - dy, options.minHeight, Infinity));
+                  break;
+              case 'top':
+                  applyHeight(clamp(start.h + dy, options.minHeight, Infinity));
+                  break;
+          }
+      };
+
+      const onUp = (e) => {
+          start = null;
+          document.removeEventListener('pointermove', onMove);
+      };
+
+      handle.addEventListener('pointerdown', onDown);
+
+      return {
+          dispose() {
+              handle.removeEventListener('pointerdown', onDown);
+              document.removeEventListener('pointermove', onMove);
+          }
+      };
   },
   openDialog: function (options, dialogService, dialog) {
     if (Radzen.closeAllPopups) {
@@ -1546,8 +1630,17 @@ window.Radzen = {
       e.preventDefault();
   },
   getFocusableElements: function (element) {
-    return [...element.querySelectorAll('a, button, input, textarea, select, details, iframe, embed, object, summary dialog, audio[controls], video[controls], [contenteditable], [tabindex]')]
-        .filter(el => el && el.tabIndex > -1 && !el.hasAttribute('disabled') && el.offsetParent !== null);
+    return [...element.querySelectorAll('a, button, input, textarea, select, details, iframe, embed, object, summary, dialog, audio[controls], video[controls], [contenteditable], [tabindex]')]
+      .filter(el => {
+        if (!el || el.hasAttribute('disabled') || el.offsetParent === null) return false;
+    
+        // If this is inside a .rz-html-editor with tabindex="-1", skip it
+        var editorParent = el.closest('.rz-html-editor');
+        if (editorParent && editorParent.hasAttribute('tabindex') && editorParent.tabIndex === -1) return false;
+        else if (editorParent) return true;
+    
+        return el.tabIndex > -1;
+    });
   },
   focusTrap: function (e) {
     e = e || window.event;
@@ -2541,53 +2634,83 @@ window.Radzen = {
 
       if (scroll) {
         const target = document.querySelector(selector);
-        if (target) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'start' });
+          if (target) {
+            this.selectedNavigationSelector = selector;
+            target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'start' });
         }
       }
     },
     registerScrollListener: function (element, ref, selectors, selector) {
-      let currentSelector;
-      const container = selector ? document.querySelector(selector) : document.documentElement;
-      const elements = selectors.map(document.querySelector, document);
+        let currentSelector;
+        const container = selector ? document.querySelector(selector) : document.documentElement;
+        const elements = selectors.map(document.querySelector, document);
 
-      this.unregisterScrollListener(element);
-      element.scrollHandler = () => {
-        const center = (container.tagName === 'HTML' ? 0 : container.getBoundingClientRect().top) + container.clientHeight / 2;
+        this.unregisterScrollListener(element);
 
-        let min = Number.MAX_SAFE_INTEGER;
-        let match;
+        // helper to get current scroll position of container
+        const getScrollPosition = () => container && container.tagName === 'HTML' ? (window.scrollY || document.documentElement.scrollTop) : (container ? container.scrollTop : 0);
+        // store last scroll position on the element so we can determine direction
+        let lastScrollPosition = getScrollPosition();
 
-        for (let i = 0; i < elements.length; i++) {
-          const element = elements[i];
-          if (!element) continue;
-
-          const rect = element.getBoundingClientRect();
-          const diff = Math.abs(rect.top - center);
-
-          if (!match && rect.top < center) {
-            match = selectors[i];
-            min = diff;
-            continue;
-          }
-
-          if (match && rect.top >= center) continue;
-
-          if (diff < min) {
-            match = selectors[i];
-            min = diff;
-          }
+        let timeoutId = null;
+        const debounce = (callback, wait) => {
+            return () => {
+                window.clearTimeout(timeoutId);
+                timeoutId = window.setTimeout(() => {
+                    callback();
+                }, wait);
+            };
         }
 
-        if (match !== currentSelector) {
-          currentSelector = match;
-          this.navigateTo(currentSelector, false);
-          ref.invokeMethodAsync('ScrollIntoView', currentSelector);
-        }
-      };
+        element.scrollHandler = () => {
+            const containerRect = container && container.tagName === 'HTML'
+                ? { top: 0, bottom: window.innerHeight, height: window.innerHeight, clientHeight: window.innerHeight }
+                : container.getBoundingClientRect();
 
-      document.addEventListener('scroll', element.scrollHandler, true);
-      window.addEventListener('resize', element.scrollHandler, true);
+            const scrollTop = getScrollPosition();
+            //When loading the page or when no scrolling has been execute -> always look at the top of the container
+            const isDown = lastScrollPosition != 0 && scrollTop > lastScrollPosition;
+            // determine threshold based on scroll direction with a small offset
+            const threshold = isDown ? containerRect.bottom - 5 : containerRect.top + 5;
+            lastScrollPosition = scrollTop;
+            let min = Number.MAX_SAFE_INTEGER;
+            let match;
+            for (let i = 0; i < elements.length; i++) {
+                const elm = elements[i];
+                if (!elm) continue;
+
+                const rect = elm.getBoundingClientRect();
+                const diff = Math.abs(rect.top - threshold);
+
+                if (!match && rect.top < threshold) {
+                    match = selectors[i];
+                    min = diff;
+                    continue;
+                }
+
+                if (match && rect.top > threshold) continue;
+
+                if (diff < min) {
+                    match = selectors[i];
+                    min = diff;
+                }                
+            }
+
+            if (match && match !== currentSelector) {
+                currentSelector = match;
+                if (!this.selectedNavigationSelector || (match === this.selectedNavigationSelector)) {
+                    this.navigateTo(currentSelector, false);
+                    ref.invokeMethodAsync('ScrollIntoView', currentSelector);
+                }
+            }
+            // clear selected navigation selector after scroll completes
+            if (this.selectedNavigationSelector && match === this.selectedNavigationSelector) {
+                debounce(() => { this.selectedNavigationSelector = undefined; }, 100)();
+            }
+        };
+
+        document.addEventListener('scroll', element.scrollHandler, true);
+        window.addEventListener('resize', element.scrollHandler, true);
     },
     unregisterScrollListener: function (element) {
       document.removeEventListener('scroll', element.scrollHandler, true);
