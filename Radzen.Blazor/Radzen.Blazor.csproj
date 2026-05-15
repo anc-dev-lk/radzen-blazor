@@ -80,7 +80,7 @@
     <ItemGroup>
         <CssFile Include="$(MSBuildProjectDirectory)/themes/*.css" />
     </ItemGroup>
-    <Move SourceFiles="@(CssFile)" DestinationFolder="$(MSBuildProjectDirectory)/wwwroot/css/" />
+    <Move SourceFiles="@(CssFile)" DestinationFolder="D:/Development/Accure/Azure_Repositories/Accure.ABC.DesignSystem/Accure.Blazor.DesignSystem/wwwroot/css/v3/themes/" />
     <ItemGroup>
         <Content Include="wwwroot/css/**/*.css" />
     </ItemGroup>
